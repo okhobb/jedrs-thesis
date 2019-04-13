@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
+
+import {DataQuery} from './dataQuery';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +8,28 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+
+  @ViewChild('searchInput') searchInput: ElementRef<HTMLInputElement>;
+
   title = 'jeds-final-thesis-project-by-hobbito';
+
+  searchTerm: string = '';
+  
+  results: any[] = []
+
+  constructor(private readonly dataQuery: DataQuery) {
+
+  }
+
+  doSearch(): void {
+    const searchTerm = this.searchInput.nativeElement.value;
+    console.log('search term is ', searchTerm);
+
+    this.dataQuery.search(searchTerm)
+      .then(results => {
+        this.results = results;
+        console.log(results);
+      });
+  }
+
 }
