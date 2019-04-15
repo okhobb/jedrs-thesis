@@ -3,12 +3,16 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import {HistogramComponent} from './histogram.component';
+import {ItemDetailComponent} from './itemDetail.component';
 
 import {DataQuery} from './dataQuery';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    HistogramComponent,
+    ItemDetailComponent
   ],
   imports: [
     BrowserModule,
@@ -16,7 +20,6 @@ import {DataQuery} from './dataQuery';
   ],
   providers: [
     DataQuery
-
   ],
   bootstrap: [AppComponent]
 })

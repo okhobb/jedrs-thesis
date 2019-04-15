@@ -13,10 +13,13 @@
   <button (click)="doSearch()">Search</button>
 </div>
 
+<div *ngIf="currentItem">
+  <item-detail [item]="currentItem"></item-detail>
+</div>
+
 <div>
-  <div *ngFor="let result of results">
-    {{result | json}}
-  </div>
+  <histogram [pbItems]="pbItems" (clickedItem)="handleItemClick($event)"></histogram>
+
 </div>
 
 <router-outlet></router-outlet>

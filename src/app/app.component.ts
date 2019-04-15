@@ -1,6 +1,7 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
 
 import {DataQuery} from './dataQuery';
+import { PbItem } from './pbItem';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,8 @@ export class AppComponent {
 
   searchTerm: string = '';
   
-  results: any[] = []
+  pbItems: PbItem[] = []
+  currentItem: PbItem|undefined;
 
   constructor(private readonly dataQuery: DataQuery) {
 
@@ -27,9 +29,13 @@ export class AppComponent {
 
     this.dataQuery.search(searchTerm)
       .then(results => {
-        this.results = results;
+        this.pbItems = results;
         console.log(results);
       });
+  }
+
+  handleItemClick(item: PbItem): void {
+    this.currentItem = item;
   }
 
 }

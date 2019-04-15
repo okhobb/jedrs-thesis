@@ -1,12 +1,22 @@
 import { Injectable } from '@angular/core';
 
 
-const parser = require('fast-xml-parser');
+import * as parser from 'fast-xml-parser';
+import * as querystring from 'querystring';
+import * as moment from 'moment';
 
-const querystring = require('querystring');
+import {PbItem} from './pbItem';
 
-
-
+interface RawPbItem {
+  title: string,
+  xml2json: {
+    pbcoreDescriptionDocument: {
+      pbcoreInstantiation: {
+        instantiationDate: string|undefined
+      }
+    }
+  }
+}
 
 @Injectable()
 export class DataQuery {
@@ -21,7 +31,7 @@ export class DataQuery {
   };
 
 
-  search(searchTerm: string): Promise<any> {
+  search(searchTerm: string): Promise<PbItem[]> {
     const queryParams = {
       ...this.queryParams,
       q: searchTerm
@@ -30,14 +40,35 @@ export class DataQuery {
     return fetch(url)
       .then(res => res.json())
       .then(json => {
-        const docs = json.response.docs;
-        const docsWithParsedXml = docs.map((doc: any) => {
+        const docs: any[] = json.response.docs;
+        const docsWithParsedXml: RawPbItem[] = docs.map((doc: any) => {
           return {
             ...doc,
             xml2json: parser.parse(doc.xml)
           }
         });
-        return docsWithParsedXml;
+        return docsWithParsedXml
+          .filter(this.rawItemHasDate)
+          .map(this.entryToPbItem);
       });
+  }
+
+  private rawItemHasDate(raw: RawPbItem): boolean {
+    return raw.xml2json
+      && raw.xml2json.pbcoreDescriptionDocument
+      && raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation
+      && raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation.instantiationDate !== undefined;
+  }
+
+  private entryToPbItem(raw: RawPbItem): PbItem {
+
+    const dateStr = raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation.instantiationDate;
+
+    const date = moment(dateStr, 'YYYY-MM-DD').toDate();
+
+    return {
+      title: raw.title,
+      date: date
+    }
   }
 }
