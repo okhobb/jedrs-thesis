@@ -8,6 +8,7 @@ import * as moment from 'moment';
 import {PbItem} from './pbItem';
 
 interface RawPbItem {
+  id: string,
   title: string,
   xml2json: {
     pbcoreDescriptionDocument: {
@@ -67,6 +68,7 @@ export class DataQuery {
     const date = moment(dateStr, 'YYYY-MM-DD').toDate();
 
     return {
+      id: raw.id,
       title: raw.title,
       date: date
     }
