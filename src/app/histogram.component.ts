@@ -66,9 +66,6 @@ export class HistogramComponent implements AfterViewInit, OnChanges {
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-
-    const nbins = 20;
-
     const pbItemDateExtent = d3.extent(this.pbItems, x => x.date);
     const pbItemDateBins = d3.timeYears(
       d3.timeYear.offset(pbItemDateExtent[0],-1),
@@ -81,12 +78,12 @@ export class HistogramComponent implements AfterViewInit, OnChanges {
       .domain(pbItemDateExtent);
 
     const histogram = d3.histogram()
-      .domain(x.domain())
-      .thresholds(pbItemDateBins)
-      .value(d => d.date)
+      .domain(_ => [x.domain()[0], x.domain()[1]])
+      .thresholds(_ => pbItemDateBins.map(x => x.getTime()))
+      .value((d: any) => d.date)
 
     //binning data and filtering out empty bins
-    const bins = histogram(this.pbItems);
+    const bins = histogram(<any[]>this.pbItems);
 
     //g container for each bin
     let binContainer = this.d3Svg.selectAll(".gBin")
@@ -97,14 +94,14 @@ export class HistogramComponent implements AfterViewInit, OnChanges {
     let binContainerEnter = binContainer.enter()
       .append("g")
         .attr("class", "gBin")
-        .attr("transform", d => {
+        .attr("transform", (d: any) => {
           console.log('d is ', d)
           return `translate(${x(d.x0)}, ${height})`;
         })
 
     //need to populate the bin containers with data the first time
     binContainerEnter.selectAll("circle")
-        .data(d => d.map((p, i) => {
+        .data((d: any) => d.map((p, i) => {
           return {
             idx: i,
             pbItem: p,
@@ -115,17 +112,17 @@ export class HistogramComponent implements AfterViewInit, OnChanges {
       .append("circle")
         .attr("class", "enter")
         .attr("cx", 0) //g element already at correct x pos
-        .attr("cy", function(d) {
+        .attr("cy", (d: any) => {
             return - d.idx * 2 * d.radius - d.radius; })
-        .attr("r", d => d.radius)
+        .attr("r", (d: any) => d.radius)
         .on("click", d => this.handleClick(d));
 
-    binContainerEnter.merge(binContainer)
-        .attr("transform", d => `translate(${x(d.x0)}, ${height})`)
+    binContainerEnter.merge(<any>binContainer)
+        .attr("transform", (d: any) => `translate(${x(d.x0)}, ${height})`)
 
     //enter/update/exit for circles, inside each container
     let dots = binContainer.selectAll("circle")
-        .data(d => d.map((p, i) => {
+        .data((d: any) => d.map((p, i) => {
           return {
             idx: i,
             pbItem: p,
@@ -139,10 +136,10 @@ export class HistogramComponent implements AfterViewInit, OnChanges {
       .append("circle")
         .attr("class", "enter")
         .attr("cx", 0) //g element already at correct x pos
-        .attr("cy", function(d) {
+        .attr("cy", (d: any) => {
           return - d.idx * 2 * d.radius - d.radius; })
-        .attr("r", d => d.radius)
-      .merge(dots)
+        .attr("r", (d: any) => d.radius)
+      .merge(<any>dots)
         .on("click", d => this.handleClick(d));
 
  
