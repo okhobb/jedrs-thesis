@@ -1,12 +1,16 @@
-import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, AfterViewInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, AfterViewInit, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 
 import * as d3 from 'd3';
+
+import {Subscription, Observable} from 'rxjs';
+
 import { PbItem } from './pbItem';
 
 @Component({
   selector: 'histogram',
   template: `
 
+    <div>{{pbItems.length}} results</div>
     <div class="histogram">
       <svg #svgElt
         [attr.width]="svgWidth"
@@ -19,62 +23,62 @@ import { PbItem } from './pbItem';
     .histogram {
       width: 100%;
     }
-
-    .enter {
-      fill: #EDCA3A;
-    }
-    
-    .update {
-      fill: #1FBAD6;
-    }
-    
-    .exit {
-      fill: #F25754;
-    }
-    
-    .selected {
-      fill: #E6B0F1;
-    }
   `]
 })
-export class HistogramComponent implements AfterViewInit, OnChanges {
+export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   @ViewChild('svgElt') svgElt: ElementRef<SVGElement>;
-  @Input() pbItems: PbItem[];
+  @Input() pbItemsObs: Observable<PbItem[]>;
   @Output() clickedItem: EventEmitter<PbItem> = new EventEmitter<PbItem>();
 
   svgWidth: number = 0;
   svgHeight: number = 0;
+  private margin: {top: number, right: number, bottom: number, left: number};
+  private width: number;
+  private height: number;
+  
 
   private d3Svg: d3.Selection<SVGGElement, {}, null, undefined>;
+  private d3SvgXAxis: any;
 
+  pbItems: PbItem[] = [];
+  private pbItemsSub: Subscription;
+
+  constructor() {
+    this.margin = {top: 10, right: 30, bottom: 30, left: 30};
+    this.width = 550 - this.margin.left - this.margin.right
+    this.height = 480 - this.margin.top - this.margin.bottom;
+
+    this.svgWidth = this.width + this.margin.left + this.margin.right;
+    this.svgHeight = this.height + this.margin.top + this.margin.bottom;
+  }
+
+  ngOnDestroy(): void {
+    if (this.pbItemsSub) {
+      this.pbItemsSub.unsubscribe();
+    }
+  }
 
   ngAfterViewInit(): void {
 
-    if (this.pbItems.length === 0) {
-      return;
-    }
 
-    const margin = {top: 10, right: 30, bottom: 30, left: 30};
-    const width = 550 - margin.left - margin.right
-    const height = 480 - margin.top - margin.bottom;
-
-    this.svgWidth = width + margin.left + margin.right;
-    this.svgHeight = height + margin.top + margin.bottom;
 
     this.d3Svg = d3.select(this.svgElt.nativeElement)
       .append("g")
-      .attr("transform", `translate(${margin.left}, ${margin.top})`);
+      .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
+  }
+
+
+
+  private handleDataUpdate(): void {
     const pbItemDateExtent = d3.extent(this.pbItems, x => x.date);
     const pbItemDateBins = d3.timeYears(
       d3.timeYear.offset(pbItemDateExtent[0],-1),
       d3.timeYear.offset(pbItemDateExtent[1],1));
 
-    console.log('monthbins is', this.pbItems, pbItemDateExtent, pbItemDateBins);
-
     const x = d3.scaleLinear()
-      .rangeRound([0, width])
+      .rangeRound([0, this.width])
       .domain(pbItemDateExtent);
 
     const histogram = d3.histogram()
@@ -95,8 +99,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges {
       .append("g")
         .attr("class", "gBin")
         .attr("transform", (d: any) => {
-          console.log('d is ', d)
-          return `translate(${x(d.x0)}, ${height})`;
+          return `translate(${x(d.x0)}, ${this.height})`;
         })
 
     //need to populate the bin containers with data the first time
@@ -115,10 +118,14 @@ export class HistogramComponent implements AfterViewInit, OnChanges {
         .attr("cy", (d: any) => {
             return - d.idx * 2 * d.radius - d.radius; })
         .attr("r", (d: any) => d.radius)
+        .attr('fill', (d: any) => {
+          const year = d.pbItem.date.getYear();
+          return (year % 2 === 0) ? 'red' : 'green';
+        })
         .on("click", d => this.handleClick(d));
 
     binContainerEnter.merge(<any>binContainer)
-        .attr("transform", (d: any) => `translate(${x(d.x0)}, ${height})`)
+        .attr("transform", (d: any) => `translate(${x(d.x0)}, ${this.height})`)
 
     //enter/update/exit for circles, inside each container
     let dots = binContainer.selectAll("circle")
@@ -142,22 +149,33 @@ export class HistogramComponent implements AfterViewInit, OnChanges {
       .merge(<any>dots)
         .on("click", d => this.handleClick(d));
 
- 
-    this.d3Svg.append("g")
-      .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + height + ")")
-      .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%y")));
-
+    if (! this.d3SvgXAxis) {
+      this.d3SvgXAxis = this.d3Svg.append("g")
+        .attr("class", "axis axis--x")
+        .attr("transform", "translate(0," + this.height + ")");
+    }
+    this.d3SvgXAxis.call(d3.axisBottom(x).tickFormat(d3.timeFormat("%y")));
 
   }
 
-
   ngOnChanges(changes: SimpleChanges): void {
-    this.ngAfterViewInit();
+    if (changes['pbItemsObs']) {
+      if (this.pbItemsSub) {
+        this.pbItemsSub.unsubscribe();
+        this.pbItems = [];
+      }
+      const newItemsObs: Observable<PbItem[]> = changes['pbItemsObs'].currentValue;
+      if (newItemsObs) {
+        this.pbItemsSub = newItemsObs.subscribe(items => {
+          this.pbItems = [...this.pbItems, ...items];
+          this.handleDataUpdate();
+        });
+      }
+    }
   }
 
   private handleClick(d3DataPt: any): void {
-    console.log('i clicked ', d3DataPt);
     this.clickedItem.next(d3DataPt.pbItem);
   }
+
 }

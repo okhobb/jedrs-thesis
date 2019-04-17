@@ -9,6 +9,9 @@
   <input
     #searchInput
     type="text" placeholder="Search some shit ...">
+  <label>
+    Limit: <input #outputLimitInput type="number" value="1000">
+  </label>
   <button (click)="doSearch()">Search</button>
 </div>
 
@@ -17,7 +20,7 @@
 </div>
 
 <div>
-  <histogram [pbItems]="pbItems" (clickedItem)="handleItemClick($event)"></histogram>
+  <histogram [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></histogram>
 
 </div>
 
