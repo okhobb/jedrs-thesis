@@ -6,6 +6,12 @@ import {Subscription, Observable} from 'rxjs';
 
 import { PbItem } from './pbItem';
 
+enum Orientation {
+  Horizontal,
+  Vertical
+}
+
+
 @Component({
   selector: 'histogram',
   template: `
@@ -44,6 +50,11 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
   pbItems: PbItem[] = [];
   private pbItemsSub: Subscription;
 
+
+  private orientation: Orientation = Orientation.Vertical;
+
+  private readonly verticalAxisWidth = 7;
+
   constructor() {
     this.margin = {top: 10, right: 30, bottom: 30, left: 30};
     this.width = 550 - this.margin.left - this.margin.right
@@ -60,16 +71,32 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-
-
-
     this.d3Svg = d3.select(this.svgElt.nativeElement)
       .append("g")
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
-
   }
 
+  private getDisplayRangeMax(): number {
+    return (this.orientation === Orientation.Horizontal) ? this.width : this.height;
+  }
 
+  private getBinTranslate(d: any, scale: d3.ScaleLinear<number, number>): string {
+    return (this.orientation === Orientation.Horizontal)
+      ? `translate(${scale(d.x0)}, ${this.height})`
+      : `translate(${this.verticalAxisWidth}, ${scale(d.x0)})`;
+  }
+
+  private getCircleX(d: any): number {
+    return (this.orientation === Orientation.Horizontal)
+      ? 0
+      : (d.idx * 2 * d.radius - d.radius);
+  }
+
+  private getCircleY(d: any): number {
+    return (this.orientation === Orientation.Horizontal)
+      ? (-d.idx * 2 * d.radius - d.radius)
+      : 0;
+  }
 
   private handleDataUpdate(): void {
 
@@ -82,7 +109,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
       d3.timeYear.offset(pbItemDateExtent[1],1));
 
     const x = d3.scaleLinear()
-      .rangeRound([0, this.width])
+      .rangeRound([0, this.getDisplayRangeMax()])
       .domain(pbItemDateExtent);
 
     const histogram = d3.histogram()
@@ -105,7 +132,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
         .attr("year", (d: any) => new Date(d.x0).getFullYear())
         .attr("transform", (d: any) => {
           //console.log('adding gbin', new Date(d.x0), x(d.x0));
-          return `translate(${x(d.x0)}, ${this.height})`;
+          return this.getBinTranslate(d, x);
         })
 
   
@@ -123,9 +150,8 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
       .append("circle")
         .attr("class", "enter")
         .attr("year", (d: any) => d.pbItem.date.getFullYear())
-        .attr("cx", 0) //g element already at correct x pos
-        .attr("cy", (d: any) => {
-            return - d.idx * 2 * d.radius - d.radius; })
+        .attr("cx", d => this.getCircleX(d)) //g element already at correct x pos
+        .attr("cy", d => this.getCircleY(d))
         .attr("r", (d: any) => d.radius)
         .attr('fill', (d: any) => {
           const year = d.pbItem.date.getYear();
@@ -136,7 +162,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
     binContainerEnter.merge(<any>binContainer)
         .attr("transform", (d: any) => {
           //console.log('reseting translate for bin', new Date(d.x0).getFullYear(), x(d.x0))
-          return `translate(${x(d.x0)}, ${this.height})`;
+          return this.getBinTranslate(d, x);
         })
         .attr('isreset', (d: any) => {
           return new Date(d.x0).getFullYear();
@@ -157,20 +183,29 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
     dots.enter()
       .append("circle")
         .attr("class", "enter")
-        .attr("cx", 0) //g element already at correct x pos
-        .attr("cy", (d: any) => {
-          return - d.idx * 2 * d.radius - d.radius; })
+        .attr("cx", d => this.getCircleX(d)) //g element already at correct x pos
+        .attr("cy", d => this.getCircleY(d))
         .attr("r", (d: any) => d.radius)
       .merge(<any>dots)
         .on("click", d => this.handleClick(d));
 
     if (! this.d3SvgXAxis) {
-      this.d3SvgXAxis = this.d3Svg.append("g")
-        .attr("class", "axis axis--x")
-        .attr("transform", "translate(0," + this.height + ")");
-    }
-    this.d3SvgXAxis.call(d3.axisBottom(x).tickFormat(d3.timeFormat("%Y")));
 
+      if (this.orientation === Orientation.Horizontal) {
+        this.d3SvgXAxis = this.d3Svg.append("g")
+          .attr("class", "axis axis--x")
+          .attr("transform", "translate(0," + this.height + ")");
+      } else {
+        this.d3SvgXAxis = this.d3Svg.append("g")
+          .attr("class", "axis axis--x")
+          .attr("transform", "translate(0, 0)");        
+      }
+    }
+    if (this.orientation === Orientation.Horizontal) {
+      this.d3SvgXAxis.call(d3.axisBottom(x).tickFormat(d3.timeFormat("%Y")));
+    } else {
+      this.d3SvgXAxis.call(d3.axisLeft(x).tickFormat(d3.timeFormat("%Y")));
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
