@@ -100,6 +100,7 @@ export class DataQuery {
     let date = moment(dateStr, 'YYYY-MM-DD').toDate();
     if (date.getTime() > Date.now()) {
       console.error('article is from the future!!', raw)
+      date = new Date();
     }
     if (date.getTime() < moment('1900-01-01', 'YYYY-MM-DD').toDate().getTime()) {
       console.error('fucking article is in the past!', dateStr, raw.title, raw);
