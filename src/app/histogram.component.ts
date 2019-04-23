@@ -72,6 +72,10 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
 
 
   private handleDataUpdate(): void {
+
+    // TODO - figure tf out how to re-use elements in proper d3 fashion.
+    this.d3Svg.selectAll(".gBin").remove();
+
     const pbItemDateExtent = d3.extent(this.pbItems, x => x.date);
     const pbItemDateBins = d3.timeYears(
       d3.timeYear.offset(pbItemDateExtent[0],-1),
@@ -98,9 +102,13 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
     let binContainerEnter = binContainer.enter()
       .append("g")
         .attr("class", "gBin")
+        .attr("year", (d: any) => new Date(d.x0).getFullYear())
         .attr("transform", (d: any) => {
+          //console.log('adding gbin', new Date(d.x0), x(d.x0));
           return `translate(${x(d.x0)}, ${this.height})`;
         })
+
+  
 
     //need to populate the bin containers with data the first time
     binContainerEnter.selectAll("circle")
@@ -114,6 +122,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
       .enter()
       .append("circle")
         .attr("class", "enter")
+        .attr("year", (d: any) => d.pbItem.date.getFullYear())
         .attr("cx", 0) //g element already at correct x pos
         .attr("cy", (d: any) => {
             return - d.idx * 2 * d.radius - d.radius; })
@@ -125,7 +134,13 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
         .on("click", d => this.handleClick(d));
 
     binContainerEnter.merge(<any>binContainer)
-        .attr("transform", (d: any) => `translate(${x(d.x0)}, ${this.height})`)
+        .attr("transform", (d: any) => {
+          //console.log('reseting translate for bin', new Date(d.x0).getFullYear(), x(d.x0))
+          return `translate(${x(d.x0)}, ${this.height})`;
+        })
+        .attr('isreset', (d: any) => {
+          return new Date(d.x0).getFullYear();
+        })
 
     //enter/update/exit for circles, inside each container
     let dots = binContainer.selectAll("circle")
@@ -154,7 +169,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + this.height + ")");
     }
-    this.d3SvgXAxis.call(d3.axisBottom(x).tickFormat(d3.timeFormat("%y")));
+    this.d3SvgXAxis.call(d3.axisBottom(x).tickFormat(d3.timeFormat("%Y")));
 
   }
 

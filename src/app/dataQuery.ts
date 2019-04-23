@@ -33,7 +33,7 @@ export class DataQuery {
     start: 0
   };
 
-  search(searchTerm: string, pageSize: number = 100): Observable<PbItem[]> {
+  search(searchTerm: string, pageSize: number = 50): Observable<PbItem[]> {
     
     const getItems: ((start?: number) => Observable<PbItem[]>) = (start: number = undefined) => {
       return defer(() => this.getBatch(searchTerm, pageSize, start)).pipe(
@@ -41,7 +41,7 @@ export class DataQuery {
           const filteredItems = items
             .filter(this.rawItemHasDate)
             .map(this.entryToPbItem);
-          console.log('start', start, 'nextStart', nextStart, 'raw count', items.length, 'filter count', filteredItems.length);
+          //console.log('start', start, 'nextStart', nextStart, 'raw count', items.length, 'filter count', filteredItems.length);
           const items$ = of(filteredItems);
           const next$ = nextStart >= 0 ? getItems(nextStart) : empty();
           return items$.pipe(concat(next$));
@@ -59,11 +59,11 @@ export class DataQuery {
       start: start,
       rows: pageSize
     };
-    console.log('query params', queryParams);
+    //console.log('query params', queryParams);
     let url = this.baseUrl + '?' + querystring.stringify(queryParams);
     return ajax.getJSON(url).pipe(
       map((json: any) => {
-        console.log('json len', json.response.docs.length, pageSize)
+        //console.log('json len', json.response.docs.length, pageSize)
         return {       
           items: this.rawDataToRawPbItem(json.response.docs),
           nextStart: json.response.docs.length === pageSize ? (start + pageSize) : -1
@@ -91,10 +91,20 @@ export class DataQuery {
 
   private entryToPbItem(raw: RawPbItem): PbItem {
 
-    const dateStr = raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation.instantiationDate;
-
-    const date = moment(dateStr, 'YYYY-MM-DD').toDate();
-
+    let dateStr: any = raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation.instantiationDate;
+    // console.log('fucking date string is', dateStr);
+    // if (typeof(dateStr) !== 'string') {
+    //   dateStr = dateStr[0];
+    //   console.log('fixed is ', dateStr);
+    // }
+    let date = moment(dateStr, 'YYYY-MM-DD').toDate();
+    if (date.getTime() > Date.now()) {
+      console.error('article is from the future!!', raw)
+    }
+    if (date.getTime() < moment('1900-01-01', 'YYYY-MM-DD').toDate().getTime()) {
+      console.error('fucking article is in the past!', dateStr, raw.title, raw);
+      date = new Date();
+    }
     return {
       id: raw.id,
       title: raw.title,
