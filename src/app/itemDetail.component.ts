@@ -5,6 +5,9 @@ import { PbItem } from './pbItem';
   selector: 'item-detail',
   template: `
     <div>{{item | json}}</div>
+    <div *ngIf="item.transcriptUrl">
+      <a [href]="item.transcriptUrl" target="_blank">{{item.transcriptUrl}}</a>
+    </div>
   `
 })
 export class ItemDetailComponent {

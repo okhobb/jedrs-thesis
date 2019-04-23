@@ -17,7 +17,8 @@ interface RawPbItem {
     pbcoreDescriptionDocument: {
       pbcoreInstantiation: {
         instantiationDate: string|undefined
-      }
+      },
+      pbcoreAnnotation: string[]
     }
   }
 }
@@ -39,8 +40,8 @@ export class DataQuery {
       return defer(() => this.getBatch(searchTerm, pageSize, start)).pipe(
         mergeMap(({items, nextStart}, idx) => {
           const filteredItems = items
-            .filter(this.rawItemHasDate)
-            .map(this.entryToPbItem);
+            .filter(x => this.rawItemHasDate(x))
+            .map(x => this.entryToPbItem(x));
           //console.log('start', start, 'nextStart', nextStart, 'raw count', items.length, 'filter count', filteredItems.length);
           const items$ = of(filteredItems);
           const next$ = nextStart >= 0 ? getItems(nextStart) : empty();
@@ -109,7 +110,24 @@ export class DataQuery {
     return {
       id: raw.id,
       title: raw.title,
-      date: date
+      date: date,
+      transcriptUrl: this.getRawPbItemTranscript(raw)
     }
+  }
+
+  private readonly transcriptUrlRegex = /^http.*transcript.*$/;
+
+  private getRawPbItemTranscript(raw: RawPbItem): string|undefined {
+    if (raw.xml2json.pbcoreDescriptionDocument && raw.xml2json.pbcoreDescriptionDocument.pbcoreAnnotation) {
+      const annotationArray = raw.xml2json.pbcoreDescriptionDocument.pbcoreAnnotation;
+      for (let i = 0; i < annotationArray.length; i++) {
+        console.log('anno', annotationArray[i]);
+        //annotationArray[i] = 'http://a-transcript.json';
+        if (this.transcriptUrlRegex.test(annotationArray[i])) {
+          return annotationArray[i];
+        }
+      }
+    }
+    return undefined;
   }
 }

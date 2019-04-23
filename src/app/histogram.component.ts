@@ -98,6 +98,15 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
       : 0;
   }
 
+  private getCircleFill(d: any): string {
+    const pbItem = <PbItem>d.pbItem;
+    if (pbItem.transcriptUrl) {
+      return 'blue';
+    }
+    const year = d.pbItem.date.getYear();
+    return (year % 2 === 0) ? 'red' : 'green';
+  }
+
   private handleDataUpdate(): void {
 
     // TODO - figure tf out how to re-use elements in proper d3 fashion.
@@ -135,8 +144,6 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
           return this.getBinTranslate(d, x);
         })
 
-  
-
     //need to populate the bin containers with data the first time
     binContainerEnter.selectAll("circle")
         .data((d: any) => d.map((p, i) => {
@@ -153,10 +160,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
         .attr("cx", d => this.getCircleX(d)) //g element already at correct x pos
         .attr("cy", d => this.getCircleY(d))
         .attr("r", (d: any) => d.radius)
-        .attr('fill', (d: any) => {
-          const year = d.pbItem.date.getYear();
-          return (year % 2 === 0) ? 'red' : 'green';
-        })
+        .attr('fill', (d: any) => this.getCircleFill(d))
         .on("click", d => this.handleClick(d));
 
     binContainerEnter.merge(<any>binContainer)
