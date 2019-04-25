@@ -4,5 +4,6 @@ export interface PbItem {
   title: string;
   date: Date;
   transcriptUrl?: string;
+  hasOnlineReadingRoom: boolean;
 
 }

@@ -100,11 +100,17 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private getCircleFill(d: any): string {
     const pbItem = <PbItem>d.pbItem;
+    if (pbItem.transcriptUrl && pbItem.hasOnlineReadingRoom) {
+      return 'green';
+    }
     if (pbItem.transcriptUrl) {
       return 'blue';
     }
-    const year = d.pbItem.date.getYear();
-    return (year % 2 === 0) ? 'red' : 'green';
+    if (pbItem.hasOnlineReadingRoom) {
+      return 'yellow';
+    }
+    
+    return 'gray';
   }
 
   private handleDataUpdate(): void {

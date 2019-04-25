@@ -10,14 +10,17 @@ import * as moment from 'moment';
 
 import {PbItem} from './pbItem';
 
+
+interface RawPbInstantiation {
+  instantiationDate: string
+}
+
 interface RawPbItem {
   id: string,
   title: string,
   xml2json: {
     pbcoreDescriptionDocument: {
-      pbcoreInstantiation: {
-        instantiationDate: string|undefined
-      },
+      pbcoreInstantiation: RawPbInstantiation|RawPbInstantiation[],
       pbcoreAnnotation: string[]
     }
   }
@@ -28,8 +31,8 @@ export class DataQuery {
 
   private readonly baseUrl = 'http://americanarchive.org/api.json';
   private readonly queryParams = {
-    q: 'climate',
-    fl: 'id,title,xml',
+    q: 'climate AND access_types:online',
+    fl: 'id,title,xml,access_types',
     rows: 100,
     start: 0
   };
@@ -40,9 +43,8 @@ export class DataQuery {
       return defer(() => this.getBatch(searchTerm, pageSize, start)).pipe(
         mergeMap(({items, nextStart}, idx) => {
           const filteredItems = items
-            .filter(x => this.rawItemHasDate(x))
+            .filter(x => this.hasInstatiations(x))
             .map(x => this.entryToPbItem(x));
-          //console.log('start', start, 'nextStart', nextStart, 'raw count', items.length, 'filter count', filteredItems.length);
           const items$ = of(filteredItems);
           const next$ = nextStart >= 0 ? getItems(nextStart) : empty();
           return items$.pipe(concat(next$));
@@ -56,7 +58,7 @@ export class DataQuery {
   private getBatch(searchTerm: string, pageSize: number, start: number = 0): Observable<{items: RawPbItem[], nextStart: number}> {
     const queryParams = {
       ...this.queryParams,
-      q: searchTerm,
+      //q: searchTerm,
       start: start,
       rows: pageSize
     };
@@ -83,16 +85,21 @@ export class DataQuery {
     return docsWithParsedXml;
   }
 
-  private rawItemHasDate(raw: RawPbItem): boolean {
-    return raw.xml2json
-      && raw.xml2json.pbcoreDescriptionDocument
-      && raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation
-      && raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation.instantiationDate !== undefined;
+  private hasInstatiations(raw: RawPbItem): boolean {
+    return raw.xml2json.pbcoreDescriptionDocument
+      && raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation !== undefined;
+  }
+
+  private getInstantiations(raw: RawPbItem): RawPbInstantiation[] {
+    return Array.isArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation)
+      ? raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation
+      : [raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation];
   }
 
   private entryToPbItem(raw: RawPbItem): PbItem {
-
-    let dateStr: any = raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation.instantiationDate;
+    const instantiations = this.getInstantiations(raw);
+    const firstInstantiation = instantiations[0];
+    let dateStr: any = firstInstantiation.instantiationDate;
     // console.log('fucking date string is', dateStr);
     // if (typeof(dateStr) !== 'string') {
     //   dateStr = dateStr[0];
@@ -111,7 +118,8 @@ export class DataQuery {
       id: raw.id,
       title: raw.title,
       date: date,
-      transcriptUrl: this.getRawPbItemTranscript(raw)
+      transcriptUrl: this.getRawPbItemTranscript(raw),
+      hasOnlineReadingRoom: this.getRawPbItemHasOnlineReadingRoom(raw)
     }
   }
 
@@ -121,7 +129,7 @@ export class DataQuery {
     if (raw.xml2json.pbcoreDescriptionDocument && raw.xml2json.pbcoreDescriptionDocument.pbcoreAnnotation) {
       const annotationArray = raw.xml2json.pbcoreDescriptionDocument.pbcoreAnnotation;
       for (let i = 0; i < annotationArray.length; i++) {
-        console.log('anno', annotationArray[i]);
+        //console.log('anno', annotationArray[i]);
         //annotationArray[i] = 'http://a-transcript.json';
         if (this.transcriptUrlRegex.test(annotationArray[i])) {
           return annotationArray[i];
@@ -130,4 +138,13 @@ export class DataQuery {
     }
     return undefined;
   }
+
+  private getRawPbItemHasOnlineReadingRoom(raw: RawPbItem): boolean {
+    if (raw.xml2json.pbcoreDescriptionDocument && raw.xml2json.pbcoreDescriptionDocument.pbcoreAnnotation) {
+      const annotationArray = raw.xml2json.pbcoreDescriptionDocument.pbcoreAnnotation;
+      return annotationArray.indexOf('Online Reading Room') !== -1;
+    }
+    return false;
+  }
+
 }
