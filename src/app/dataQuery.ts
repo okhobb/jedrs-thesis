@@ -55,10 +55,14 @@ export class DataQuery {
     return getItems();
   }
 
+  private makeQuery(searchTerm: string): string {
+    return `${searchTerm} AND access_types:online`;
+  }
+
   private getBatch(searchTerm: string, pageSize: number, start: number = 0): Observable<{items: RawPbItem[], nextStart: number}> {
     const queryParams = {
       ...this.queryParams,
-      //q: searchTerm,
+      q: this.makeQuery(searchTerm),
       start: start,
       rows: pageSize
     };
