@@ -114,21 +114,24 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
   // choosing the colors 
   private getCircleFill(d: any): string {
     const pbItem = <PbItem>d.pbItem;
-    if (pbItem.transcriptUrl && pbItem.hasOnlineReadingRoom) {
-      return 'green';
+    if (pbItem.mediaType === 'Moving Image') {
+      return 'blue'; 
     }
-    if (pbItem.transcriptUrl) {
-      return 'blue';
-    }
-    if (pbItem.hasOnlineReadingRoom) {
-      return 'yellow';
-    }
-    
-    return 'gray';
+    return 'red';
   }
+
+  private counter = 0;
+
+  private radius = 2;
 
   // function to get the data into histogram using bostock example
   private handleDataUpdate(): void {
+
+    // this.counter = 0;
+
+    // for (let i = 0; i < this.pbItems.length; i++) {
+    //   console.log('ith is', i, this.pbItems[i].date)
+    // }
 
     // TODO - figure tf out how to re-use elements in proper d3 fashion.
     this.d3Svg.selectAll(".gBin").remove();
@@ -158,7 +161,10 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
     let binContainerEnter = binContainer.enter()
       .append("g")
         .attr("class", "gBin")
-        .attr("year", (d: any) => new Date(d.x0).getFullYear())
+        // .attr("year", (d: any) => {
+        //   //console.log('year is ', new Date(d.x0).getFullYear())
+        //   return new Date(d.x0).getFullYear();
+        // })
         .attr("transform", (d: any) => {
           //console.log('adding gbin', new Date(d.x0), x(d.x0));
           return this.getBinTranslate(d, x);
@@ -167,10 +173,11 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
     //need to populate the bin containers with data the first time
     binContainerEnter.selectAll("circle")
         .data((d: any) => d.map((p, i) => {
+          //console.log('i is', i, p.date, this.counter++)
           return {
             idx: i,
             pbItem: p,
-            radius: (x(d.x1)-x(d.x0))/2
+            radius: this.radius
           };
         }))
       .enter()
@@ -181,7 +188,9 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
         .attr("cy", d => this.getCircleY(d))
         .attr("r", (d: any) => d.radius)
         .attr('fill', (d: any) => this.getCircleFill(d))
-        .on("click", d => this.handleClick(d));
+        .on("click", d => this.handleClick(d))
+        .on('mouseover', d => this.handleMouseover(d));
+
 
     binContainerEnter.merge(<any>binContainer)
         .attr("transform", (d: any) => {
@@ -198,7 +207,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
           return {
             idx: i,
             pbItem: p,
-            radius: (x(d.x1)-x(d.x0))/2
+            radius: this.radius
           };
         }))
 
@@ -211,7 +220,8 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
         .attr("cy", d => this.getCircleY(d))
         .attr("r", (d: any) => d.radius)
       .merge(<any>dots)
-        .on("click", d => this.handleClick(d));
+        .on("click", d => this.handleClick(d))
+        .on('mouseover', d => this.handleMouseover(d));
 
     if (! this.d3SvgXAxis) {
 
@@ -249,6 +259,10 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private handleClick(d3DataPt: any): void {
+    this.clickedItem.next(d3DataPt.pbItem);
+  }
+
+  private handleMouseover(d3DataPt: any): void {
     this.clickedItem.next(d3DataPt.pbItem);
   }
 
