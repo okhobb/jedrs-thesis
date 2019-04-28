@@ -7,5 +7,7 @@ export interface PbItem {
   date: Date;
   transcriptUrl?: string;
   hasOnlineReadingRoom: boolean;
+  description: string[],
+  mediaType: string
 
 }

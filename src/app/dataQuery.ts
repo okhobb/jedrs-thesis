@@ -14,7 +14,8 @@ import {PbItem} from './pbItem'; // model for the aapb data
 // model to retreive the aapb data
 
 interface RawPbInstantiation {
-  instantiationDate: string
+  instantiationDate: string,
+  instantiationMediaType: string
 }
 
 // is the pbcore instantiation a single thing or an array
@@ -23,6 +24,7 @@ interface RawPbItem {
   title: string,
   xml2json: {
     pbcoreDescriptionDocument: {
+      pbcoreDescription: string[],
       pbcoreInstantiation: RawPbInstantiation|RawPbInstantiation[],
       pbcoreAnnotation: string[]
     }
@@ -137,7 +139,7 @@ export class DataQuery {
     //   console.log('fixed is ', dateStr);
     // }
     let date = moment(dateStr, 'YYYY-MM-DD').toDate();
-    //console.log('date is ', instantiations, firstInstantiationWithDate, dateStr, date)
+    //console.log('date is ', raw, instantiations, firstInstantiationWithDate, dateStr, date)
     if (date.getTime() > Date.now()) {
       console.error('article is from the future!!', raw)
       date = new Date();
@@ -151,7 +153,9 @@ export class DataQuery {
       title: raw.title,
       date: date,
       transcriptUrl: this.getRawPbItemTranscript(raw),
-      hasOnlineReadingRoom: this.getRawPbItemHasOnlineReadingRoom(raw)
+      hasOnlineReadingRoom: this.getRawPbItemHasOnlineReadingRoom(raw),
+      description: raw.xml2json.pbcoreDescriptionDocument.pbcoreDescription,
+      mediaType: firstInstantiationWithDate.instantiationMediaType
     }
   }
 

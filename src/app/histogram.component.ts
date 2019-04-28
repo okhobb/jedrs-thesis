@@ -114,21 +114,15 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
   // choosing the colors 
   private getCircleFill(d: any): string {
     const pbItem = <PbItem>d.pbItem;
-    if (pbItem.transcriptUrl && pbItem.hasOnlineReadingRoom) {
-      return 'green';
+    if (pbItem.mediaType === 'Moving Image') {
+      return 'blue'; 
     }
-    if (pbItem.transcriptUrl) {
-      return 'blue';
-    }
-    if (pbItem.hasOnlineReadingRoom) {
-      return 'yellow';
-    }
-    
-    return 'gray';
+    return 'red';
   }
 
   private counter = 0;
 
+  private radius = 2;
 
   // function to get the data into histogram using bostock example
   private handleDataUpdate(): void {
@@ -183,7 +177,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
           return {
             idx: i,
             pbItem: p,
-            radius: 4//(x(d.x1)-x(d.x0))/2
+            radius: this.radius
           };
         }))
       .enter()
@@ -194,7 +188,9 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
         .attr("cy", d => this.getCircleY(d))
         .attr("r", (d: any) => d.radius)
         .attr('fill', (d: any) => this.getCircleFill(d))
-        .on("click", d => this.handleClick(d));
+        .on("click", d => this.handleClick(d))
+        .on('mouseover', d => this.handleMouseover(d));
+
 
     binContainerEnter.merge(<any>binContainer)
         .attr("transform", (d: any) => {
@@ -211,7 +207,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
           return {
             idx: i,
             pbItem: p,
-            radius: (x(d.x1)-x(d.x0))/2
+            radius: this.radius
           };
         }))
 
@@ -224,7 +220,8 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
         .attr("cy", d => this.getCircleY(d))
         .attr("r", (d: any) => d.radius)
       .merge(<any>dots)
-        .on("click", d => this.handleClick(d));
+        .on("click", d => this.handleClick(d))
+        .on('mouseover', d => this.handleMouseover(d));
 
     if (! this.d3SvgXAxis) {
 
@@ -262,6 +259,10 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private handleClick(d3DataPt: any): void {
+    this.clickedItem.next(d3DataPt.pbItem);
+  }
+
+  private handleMouseover(d3DataPt: any): void {
     this.clickedItem.next(d3DataPt.pbItem);
   }
 

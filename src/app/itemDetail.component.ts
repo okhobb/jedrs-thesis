@@ -6,14 +6,24 @@ import { PbItem } from './pbItem';
 @Component({
   selector: 'item-detail',
   template: `
-    <div>{{item | json}}</div>
-    <div>
-      <a [href]="getUrlFromId(item)" target="_blank">Go to catalog entry....</a>
+    <div class="item-detail-box">
+      <div>{{item | json}}</div>
+      <div>
+        <a [href]="getUrlFromId(item)" target="_blank">Go to catalog entry....</a>
+      </div>
+      <div *ngIf="item.transcriptUrl">
+        <a [href]="item.transcriptUrl" target="_blank">{{item.transcriptUrl}}</a>
+      </div>
     </div>
-    <div *ngIf="item.transcriptUrl">
-      <a [href]="item.transcriptUrl" target="_blank">{{item.transcriptUrl}}</a>
-    </div>
-  `
+  `,
+  styles: [
+    `
+      .item-detail-box {
+        height: 100px;
+        overflow: scroll;
+      }
+    `
+  ]
 })
 export class ItemDetailComponent {
   @Input() item: PbItem;
