@@ -1,3 +1,5 @@
+// configures all of the angular components that are being used
+
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 

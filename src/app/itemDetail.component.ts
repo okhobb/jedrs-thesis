@@ -1,3 +1,5 @@
+// what is shown when a circle result is clicked; will be info panel
+
 import { Component, Input } from '@angular/core';
 import { PbItem } from './pbItem';
 

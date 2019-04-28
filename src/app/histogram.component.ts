@@ -6,12 +6,14 @@ import {Subscription, Observable} from 'rxjs';
 
 import { PbItem } from './pbItem';
 
+
+// sets the desired orientation for the histogram (vertical/horizontal)
 enum Orientation {
   Horizontal,
   Vertical
 }
 
-
+// linked to app.component.html
 @Component({
   selector: 'histogram',
   template: `
@@ -31,6 +33,12 @@ enum Orientation {
     }
   `]
 })
+
+// activates angular 'lifecycle methods'
+// AfterViewInit is the first time a result shows on the screen
+// OnChanges is used when the data changes (on DoSearch)
+// OnDestroy might be used for clear button 
+
 export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   @ViewChild('svgElt') svgElt: ElementRef<SVGElement>;
@@ -70,34 +78,40 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
   }
 
+  // setting the d3 svg variable so it can start to have things attached to it
   ngAfterViewInit(): void {
     this.d3Svg = d3.select(this.svgElt.nativeElement)
       .append("g")
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
   }
 
+  // finds the max number range for the pixels in order to adjust the orientation width/height
   private getDisplayRangeMax(): number {
     return (this.orientation === Orientation.Horizontal) ? this.width : this.height;
   }
 
+  // where should the dots show up based on orientation
   private getBinTranslate(d: any, scale: d3.ScaleLinear<number, number>): string {
     return (this.orientation === Orientation.Horizontal)
       ? `translate(${scale(d.x0)}, ${this.height})`
       : `translate(${this.verticalAxisWidth}, ${scale(d.x0)})`;
   }
 
+  // choosing based on orientation
   private getCircleX(d: any): number {
     return (this.orientation === Orientation.Horizontal)
       ? 0
       : (d.idx * 2 * d.radius - d.radius);
   }
 
+  // choosing based on orientation
   private getCircleY(d: any): number {
     return (this.orientation === Orientation.Horizontal)
       ? (-d.idx * 2 * d.radius - d.radius)
       : 0;
   }
 
+  // choosing the colors 
   private getCircleFill(d: any): string {
     const pbItem = <PbItem>d.pbItem;
     if (pbItem.transcriptUrl && pbItem.hasOnlineReadingRoom) {
@@ -113,6 +127,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
     return 'gray';
   }
 
+  // function to get the data into histogram using bostock example
   private handleDataUpdate(): void {
 
     // TODO - figure tf out how to re-use elements in proper d3 fashion.
@@ -138,7 +153,6 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
     //g container for each bin
     let binContainer = this.d3Svg.selectAll(".gBin")
       .data(bins);
-
     binContainer.exit().remove()
 
     let binContainerEnter = binContainer.enter()
