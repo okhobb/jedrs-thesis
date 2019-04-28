@@ -133,11 +133,11 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
   // function to get the data into histogram using bostock example
   private handleDataUpdate(): void {
 
-    this.counter = 0;
+    // this.counter = 0;
 
-    for (let i = 0; i < this.pbItems.length; i++) {
-      console.log('ith is', i, this.pbItems[i].date)
-    }
+    // for (let i = 0; i < this.pbItems.length; i++) {
+    //   console.log('ith is', i, this.pbItems[i].date)
+    // }
 
     // TODO - figure tf out how to re-use elements in proper d3 fashion.
     this.d3Svg.selectAll(".gBin").remove();
@@ -167,10 +167,10 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
     let binContainerEnter = binContainer.enter()
       .append("g")
         .attr("class", "gBin")
-        .attr("year", (d: any) => {
-          console.log('year is ', new Date(d.x0).getFullYear())
-          return new Date(d.x0).getFullYear();
-        })
+        // .attr("year", (d: any) => {
+        //   //console.log('year is ', new Date(d.x0).getFullYear())
+        //   return new Date(d.x0).getFullYear();
+        // })
         .attr("transform", (d: any) => {
           //console.log('adding gbin', new Date(d.x0), x(d.x0));
           return this.getBinTranslate(d, x);
@@ -179,7 +179,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
     //need to populate the bin containers with data the first time
     binContainerEnter.selectAll("circle")
         .data((d: any) => d.map((p, i) => {
-          console.log('i is', i, p.date, this.counter++)
+          //console.log('i is', i, p.date, this.counter++)
           return {
             idx: i,
             pbItem: p,
