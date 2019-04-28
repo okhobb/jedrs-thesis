@@ -1,3 +1,5 @@
+// normalized data structure for results
+
 export interface PbItem {
 
   id: string;

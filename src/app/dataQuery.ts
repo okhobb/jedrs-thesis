@@ -1,20 +1,23 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core'; // injectable required for including in constructor
 
-import {Observable, defer, pipe, of, empty} from 'rxjs';
-import {map, concat, mergeMap} from 'rxjs/operators';
+import {Observable, defer, pipe, of, empty} from 'rxjs'; // rxjs is allowing for the repeated data query in getItems
+import {map, concat, mergeMap} from 'rxjs/operators'; 
 import {ajax} from 'rxjs/ajax';
 
-import * as parser from 'fast-xml-parser';
-import * as querystring from 'querystring';
-import * as moment from 'moment';
+import * as parser from 'fast-xml-parser'; // parsing xml from aapb to json
+import * as querystring from 'querystring'; // querystring makes the url to query the api
+import * as moment from 'moment'; // parsing and resolving date issues
 
-import {PbItem} from './pbItem';
+import {PbItem} from './pbItem'; // model for the aapb data
 
+
+// model to retreive the aapb data
 
 interface RawPbInstantiation {
   instantiationDate: string
 }
 
+// is the pbcore instantiation a single thing or an array
 interface RawPbItem {
   id: string,
   title: string,
@@ -26,21 +29,22 @@ interface RawPbItem {
   }
 }
 
+// annotation to tell angular we can inject the class DataQuery
 @Injectable()
 export class DataQuery {
 
   private readonly baseUrl = 'http://americanarchive.org/api.json';
   private readonly queryParams = {
-    q: 'climate AND access_types:online',
     fl: 'id,title,xml,access_types',
     rows: 100,
     start: 0
   };
 
+  // repeats the searchterm in order user set number set number of responses
   search(searchTerm: string, pageSize: number = 50): Observable<PbItem[]> {
     
-    const getItems: ((start?: number) => Observable<PbItem[]>) = (start: number = undefined) => {
-      return defer(() => this.getBatch(searchTerm, pageSize, start)).pipe(
+    const getItems: ((start?: number) => Observable<PbItem[]>) = (start: number = undefined) => { // observable is a promise that keeps promising to get more than 1 result
+      return defer(() => this.getBatch(searchTerm, pageSize, start)).pipe( // defer doesn't do the work until you ask it to 
         mergeMap(({items, nextStart}, idx) => {
           const filteredItems = items
             .filter(x => this.hasInstatiations(x))
@@ -55,10 +59,12 @@ export class DataQuery {
     return getItems();
   }
 
+  // function within DataQuery
   private makeQuery(searchTerm: string): string {
     return `${searchTerm} AND access_types:online`;
   }
 
+  // helper used in getItems
   private getBatch(searchTerm: string, pageSize: number, start: number = 0): Observable<{items: RawPbItem[], nextStart: number}> {
     const queryParams = {
       ...this.queryParams,
@@ -79,6 +85,7 @@ export class DataQuery {
     );
   }
 
+  // transforms each element in the RawPbItems and adds xml2json info
   private rawDataToRawPbItem(docs: any[]): RawPbItem[] {
     const docsWithParsedXml: RawPbItem[] = docs.map((doc: any) => {
       return {
@@ -89,17 +96,20 @@ export class DataQuery {
     return docsWithParsedXml;
   }
 
+  // checks to see if each item have the pbScoreInstantiation 
   private hasInstatiations(raw: RawPbItem): boolean {
     return raw.xml2json.pbcoreDescriptionDocument
       && raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation !== undefined;
   }
 
+  // makes each item return as an array
   private getInstantiations(raw: RawPbItem): RawPbInstantiation[] {
     return Array.isArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation)
       ? raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation
       : [raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation];
   }
 
+  // gets the array and uses the first element as the date and returns in terms of PbItem (not rawpbitem)
   private entryToPbItem(raw: RawPbItem): PbItem {
     const instantiations = this.getInstantiations(raw);
     const firstInstantiation = instantiations[0];
@@ -115,7 +125,7 @@ export class DataQuery {
       date = new Date();
     }
     if (date.getTime() < moment('1900-01-01', 'YYYY-MM-DD').toDate().getTime()) {
-      console.error('fucking article is in the past!', dateStr, raw.title, raw);
+      console.error('article is in the past!', dateStr, raw.title, raw);
       date = new Date();
     }
     return {
@@ -127,6 +137,7 @@ export class DataQuery {
     }
   }
 
+// tests the annotation array for transcripts
   private readonly transcriptUrlRegex = /^http.*transcript.*$/;
 
   private getRawPbItemTranscript(raw: RawPbItem): string|undefined {
@@ -143,6 +154,7 @@ export class DataQuery {
     return undefined;
   }
 
+// checks to return if the online reading room attribute is true or false 
   private getRawPbItemHasOnlineReadingRoom(raw: RawPbItem): boolean {
     if (raw.xml2json.pbcoreDescriptionDocument && raw.xml2json.pbcoreDescriptionDocument.pbcoreAnnotation) {
       const annotationArray = raw.xml2json.pbcoreDescriptionDocument.pbcoreAnnotation;
