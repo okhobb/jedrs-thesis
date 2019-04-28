@@ -48,6 +48,7 @@ export class DataQuery {
         mergeMap(({items, nextStart}, idx) => {
           const filteredItems = items
             .filter(x => this.hasInstatiations(x))
+            .filter(x => this.hasInstantiationDate(x))
             .map(x => this.entryToPbItem(x));
           const items$ = of(filteredItems);
           const next$ = nextStart >= 0 ? getItems(nextStart) : empty();
@@ -102,6 +103,16 @@ export class DataQuery {
       && raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation !== undefined;
   }
 
+  private hasInstantiationDate(raw: RawPbItem): boolean {
+    const instantiations = this.getInstantiations(raw);
+    for (let i = 0; i < instantiations.length; i++) {
+      if (instantiations[i].instantiationDate) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // makes each item return as an array
   private getInstantiations(raw: RawPbItem): RawPbInstantiation[] {
     return Array.isArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation)
@@ -112,14 +123,21 @@ export class DataQuery {
   // gets the array and uses the first element as the date and returns in terms of PbItem (not rawpbitem)
   private entryToPbItem(raw: RawPbItem): PbItem {
     const instantiations = this.getInstantiations(raw);
-    const firstInstantiation = instantiations[0];
-    let dateStr: any = firstInstantiation.instantiationDate;
+    let firstInstantiationWithDate: RawPbInstantiation = undefined;
+    for (let i = 0; i < instantiations.length; i++) {
+      if (instantiations[i].instantiationDate) {
+        firstInstantiationWithDate = instantiations[i];
+        break;
+      }
+    }
+    let dateStr: any = firstInstantiationWithDate.instantiationDate;
     // console.log('fucking date string is', dateStr);
     // if (typeof(dateStr) !== 'string') {
     //   dateStr = dateStr[0];
     //   console.log('fixed is ', dateStr);
     // }
     let date = moment(dateStr, 'YYYY-MM-DD').toDate();
+    //console.log('date is ', instantiations, firstInstantiationWithDate, dateStr, date)
     if (date.getTime() > Date.now()) {
       console.error('article is from the future!!', raw)
       date = new Date();
