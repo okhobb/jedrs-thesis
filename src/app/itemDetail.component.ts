@@ -7,6 +7,9 @@ import { PbItem } from './pbItem';
   selector: 'item-detail',
   template: `
     <div>{{item | json}}</div>
+    <div>
+      <a [href]="getUrlFromId(item)" target="_blank">Go to catalog entry....</a>
+    </div>
     <div *ngIf="item.transcriptUrl">
       <a [href]="item.transcriptUrl" target="_blank">{{item.transcriptUrl}}</a>
     </div>
@@ -15,5 +18,8 @@ import { PbItem } from './pbItem';
 export class ItemDetailComponent {
   @Input() item: PbItem;
 
+  getUrlFromId(item: PbItem): string {
+    return `http://americanarchive.org/catalog/${item.id}`;
+  }
 
 }
