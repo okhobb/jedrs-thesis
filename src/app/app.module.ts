@@ -7,6 +7,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import {HistogramComponent} from './histogram.component';
 import {ItemDetailComponent} from './itemDetail.component';
+import {TranscriptWordCloudComponent} from './transcriptWordCloud.component';
 
 import {DataQuery} from './dataQuery';
 
@@ -14,7 +15,8 @@ import {DataQuery} from './dataQuery';
   declarations: [
     AppComponent,
     HistogramComponent,
-    ItemDetailComponent
+    ItemDetailComponent,
+    TranscriptWordCloudComponent
   ],
   imports: [
     BrowserModule,
