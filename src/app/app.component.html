@@ -22,7 +22,10 @@
 
 <div>
   <histogram [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></histogram>
+</div>
 
+<div *ngIf="currentItem">
+  <transcript-word-cloud [item]="currentItem"></transcript-word-cloud>
 </div>
 
 <router-outlet></router-outlet>
