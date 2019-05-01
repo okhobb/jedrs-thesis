@@ -2,25 +2,36 @@
 
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import {HistogramComponent} from './histogram.component';
 import {ItemDetailComponent} from './itemDetail.component';
 import {TranscriptWordCloudComponent} from './transcriptWordCloud.component';
-
+import {TranscriptComponent} from './transcript.component';
+import {SearchComponent} from './search.component';
 import {DataQuery} from './dataQuery';
+
+
+const appRoutes: Routes = [
+  { path: '', component: SearchComponent },
+  { path: 'transcript', component: TranscriptComponent }
+];
 
 @NgModule({
   declarations: [
     AppComponent,
     HistogramComponent,
     ItemDetailComponent,
-    TranscriptWordCloudComponent
+    TranscriptWordCloudComponent,
+    SearchComponent,
+    TranscriptComponent
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    RouterModule.forRoot(appRoutes)
   ],
   providers: [
     DataQuery

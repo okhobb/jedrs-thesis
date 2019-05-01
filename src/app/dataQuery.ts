@@ -62,6 +62,21 @@ export class DataQuery {
     return getItems();
   }
 
+  getById(id: string): Promise<PbItem> {
+    const queryParams = {
+      ...this.queryParams,
+      q: `id:${id}`,
+      start: 0,
+      rows: 1,
+    }
+    const url = this.baseUrl + '?' + querystring.stringify(queryParams);
+    return fetch(url).then(x => x.json())
+      .then(res => {
+        const pbItems = this.rawDataToRawPbItem(res.response.docs);
+        return this.entryToPbItem(pbItems[0]);
+      })
+  }
+
   // function within DataQuery
   private makeQuery(searchTerm: string): string {
     return `${searchTerm} AND access_types:online`;
@@ -76,7 +91,7 @@ export class DataQuery {
       rows: pageSize
     };
     //console.log('query params', queryParams);
-    let url = this.baseUrl + '?' + querystring.stringify(queryParams);
+    const url = this.baseUrl + '?' + querystring.stringify(queryParams);
     return ajax.getJSON(url).pipe(
       map((json: any) => {
         //console.log('json len', json.response.docs.length, pageSize)
@@ -123,6 +138,8 @@ export class DataQuery {
       : [raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation];
   }
 
+  private readonly minimumDate = moment('1910-01-01');
+
   // gets the array and uses the first element as the date and returns in terms of PbItem (not rawpbitem)
   private entryToPbItem(raw: RawPbItem): PbItem {
     const instantiations = this.getInstantiations(raw);
@@ -149,14 +166,25 @@ export class DataQuery {
       console.error('article is in the past!', dateStr, raw.title, raw);
       date = new Date();
     }
+
+    let hasNoDate: boolean = false;
+    if (date.getTime() < this.minimumDate.toDate().getTime()) {
+      date = new Date();
+      hasNoDate = true;
+    }
+
+    const description = Array.isArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreDescription)
+      ? raw.xml2json.pbcoreDescriptionDocument.pbcoreDescription
+      : [raw.xml2json.pbcoreDescriptionDocument.pbcoreDescription];
     return {
       id: raw.id,
       title: raw.title,
       date: date,
       transcriptUrl: this.getRawPbItemTranscript(raw),
       hasOnlineReadingRoom: this.getRawPbItemHasOnlineReadingRoom(raw),
-      description: raw.xml2json.pbcoreDescriptionDocument.pbcoreDescription,
-      mediaType: firstInstantiationWithDate.instantiationMediaType
+      description: description,
+      mediaType: firstInstantiationWithDate.instantiationMediaType,
+      hasNoDate: hasNoDate
     }
   }
 

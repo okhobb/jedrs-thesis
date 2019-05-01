@@ -1,31 +1,5 @@
 <!--The content below is only a placeholder and can be replaced.-->
-<div style="text-align:center">
-  <h1>
-    Explore the American Archive Reading Room ... 
-  </h1>
-  <div style="display: flex; flex-direction: row">
-    <img src="/assets/aapb-q-50.jpg">
-  </div>
-<div>
-  <input
-    #searchInput
-    type="text" placeholder="Search the archive's reading room ...">
-  <label>
-    Limit: <input #outputLimitInput type="number" value="1000">
-  </label>
-  <button (click)="doSearch()">Search</button>
-</div>
 
-<div *ngIf="currentItem">
-  <item-detail [item]="currentItem"></item-detail>
-</div>
 
-<div>
-  <histogram [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></histogram>
-</div>
-
-<div *ngIf="currentItem">
-  <transcript-word-cloud [item]="currentItem"></transcript-word-cloud>
-</div>
 
 <router-outlet></router-outlet>
