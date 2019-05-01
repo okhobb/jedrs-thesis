@@ -65,8 +65,8 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   constructor() {
     this.margin = {top: 10, right: 30, bottom: 30, left: 30};
-    this.width = 550 - this.margin.left - this.margin.right
-    this.height = 480 - this.margin.top - this.margin.bottom;
+    this.width = 1000 - this.margin.left - this.margin.right
+    this.height = 1000 - this.margin.top - this.margin.bottom;
 
     this.svgWidth = this.width + this.margin.left + this.margin.right;
     this.svgHeight = this.height + this.margin.top + this.margin.bottom;
@@ -115,6 +115,22 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
   private getCircleFill(d: any): string {
     const pbItem = <PbItem>d.pbItem;
     if (pbItem.mediaType === 'Moving Image') {
+      return this.getCircleColor(pbItem)
+    } else {
+      return 'none';
+    }
+  }
+
+  private getCircleStroke(d: any): string {
+    const pbItem = <PbItem>d.pbItem;
+    return this.getCircleColor(pbItem);
+  }
+
+  private getCircleColor(pbItem: PbItem): string {
+    if (pbItem.hasNoDate) {
+      return 'purple';
+    }
+    if (pbItem.mediaType === 'Moving Image') {
       return 'blue'; 
     }
     return 'red';
@@ -122,7 +138,8 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private counter = 0;
 
-  private radius = 2;
+  private readonly radius = 6;
+  private readonly strokeWidth = 1;
 
   // function to get the data into histogram using bostock example
   private handleDataUpdate(): void {
@@ -188,6 +205,8 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
         .attr("cy", d => this.getCircleY(d))
         .attr("r", (d: any) => d.radius)
         .attr('fill', (d: any) => this.getCircleFill(d))
+        .attr('stroke', (d: any) => this.getCircleStroke(d))
+        .attr('stroke-width', (d: any) => this.strokeWidth)
         .on("click", d => this.handleClick(d))
         .on('mouseover', d => this.handleMouseover(d));
 

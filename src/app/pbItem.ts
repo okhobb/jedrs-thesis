@@ -9,5 +9,5 @@ export interface PbItem {
   hasOnlineReadingRoom: boolean;
   description: string[],
   mediaType: string
-
+  hasNoDate: boolean;
 }

@@ -48,7 +48,7 @@ interface Transcript {
 })
 export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, AfterViewInit {
   @ViewChild('wordCloudSvg') wordCloudSvg: ElementRef<SVGElement>;
-  @Input() item: PbItem;
+  @Input() transcriptUrl: string;
 
   private transcriptSub: Subscription;
   private d3SvgElt: any;
@@ -69,13 +69,20 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
       this.transcriptSub.unsubscribe();
     }
     
-    if (! this.item.transcriptUrl) {
+    if (! this.transcriptUrl) {
       return;
     }
 
-    this.transcriptSub = ajax(this.item.transcriptUrl).subscribe(x => {
-      console.log('got transcript', x);
-      const wordCounts = this.getWordCounts(x.response);
+    const isText = this.transcriptUrl.endsWith('txt');
+    const ajaxConfig = {
+      url: this.transcriptUrl,
+      responseType: isText ? 'text' : 'json'
+    };
+    this.transcriptSub = ajax(ajaxConfig).subscribe(x => {
+      console.log('got transcript', this.transcriptUrl, ajaxConfig, x);
+      const wordCounts = isText
+        ? this.getWordCountsFromRawText(x.response)
+        : this.getWordCountsFromTranscriptJson(x.response);
       console.log('counts', wordCounts);
       this.setLayout(wordCounts);
       this.layout.start();
@@ -105,13 +112,11 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
       .font("courier")
       .fontSize(function(d) { return d.size; })
       .on("end", this.draw.bind(this));
-      
-
   }
 
   private minWordLength = 5;
 
-  private getWordCounts(transcriptResponse: Transcript): {[w: string]: number} {
+  private getWordCountsFromTranscriptJson(transcriptResponse: Transcript): {[w: string]: number} {
     const counts: {[w: string]: number} = {};
     return transcriptResponse.parts.reduce((counts, part) => {
       part.text.split(/\s/).forEach(word => {
@@ -126,6 +131,21 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
       });
       return counts;
     }, counts);
+  }
+
+  private getWordCountsFromRawText(text: string): {[w: string]: number} {
+    const counts: {[w: string]: number} = {};
+    text.split(/\s/).forEach(word => {
+      if (word.length < this.minWordLength) {
+        return;
+      }
+      if (counts[word]) {
+        counts[word]++;
+      } else {
+        counts[word] = 1;
+      }
+    });
+    return counts;
   }
 
   private draw(words: any) {
