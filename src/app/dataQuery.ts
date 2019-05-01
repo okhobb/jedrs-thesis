@@ -51,10 +51,7 @@ export class DataQuery {
           const filteredItems = items
             .filter(x => this.hasInstatiations(x))
             .filter(x => this.hasInstantiationDate(x))
-            .map(x => {
-              console.log('got a data', x);
-              return this.entryToPbItem(x);
-            });
+            .map(x => this.entryToPbItem(x));
           const items$ = of(filteredItems);
           const next$ = nextStart >= 0 ? getItems(nextStart) : empty();
           return items$.pipe(concat(next$));
@@ -99,6 +96,7 @@ export class DataQuery {
         xml2json: parser.parse(doc.xml)
       }
     });
+    console.log('doc with parsed xml is', docsWithParsedXml);
     return docsWithParsedXml;
   }
 
