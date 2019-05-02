@@ -11,6 +11,7 @@ import {ItemDetailComponent} from './itemDetail.component';
 import {TranscriptWordCloudComponent} from './transcriptWordCloud.component';
 import {TranscriptComponent} from './transcript.component';
 import {SearchComponent} from './search.component';
+import {BubblesComponent} from './bubbles.component';
 import {DataQuery} from './dataQuery';
 
 
@@ -26,7 +27,8 @@ const appRoutes: Routes = [
     ItemDetailComponent,
     TranscriptWordCloudComponent,
     SearchComponent,
-    TranscriptComponent
+    TranscriptComponent,
+    BubblesComponent
   ],
   imports: [
     BrowserModule,

@@ -9,6 +9,13 @@ import { PbItem } from './pbItem';
     <div class="item-detail-box">
       <div class="title">{{item.title}}</div>
       <div class="date">{{item.date | date}}</div>
+      <div *ngIf="item.genres && item.genres.length" class="genres-list">
+        <ul>
+          <li *ngFor="let genre of item.genres">
+            {{genre}}
+          </li>
+        </ul>
+      </div>
       <div *ngFor="let descriptionRow of item.description"
         class="description"
       >
@@ -46,6 +53,10 @@ import { PbItem } from './pbItem';
 
     .wordCloudLlink {
       font-size: 10px;
+    }
+
+    .genres-list {
+      text-align: left;
     }
 
     `

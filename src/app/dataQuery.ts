@@ -26,7 +26,8 @@ interface RawPbItem {
     pbcoreDescriptionDocument: {
       pbcoreDescription: string[],
       pbcoreInstantiation: RawPbInstantiation|RawPbInstantiation[],
-      pbcoreAnnotation: string[]
+      pbcoreAnnotation: string[],
+      pbcoreGenre: string[]|undefined
     }
   }
 }
@@ -53,7 +54,8 @@ export class DataQuery {
             .filter(x => this.hasInstantiationDate(x))
             .map(x => this.entryToPbItem(x));
           const items$ = of(filteredItems);
-          const next$ = nextStart >= 0 ? getItems(nextStart) : empty();
+          const isFinished = nextStart >= 0;
+          const next$ = isFinished ? getItems(nextStart) : empty();
           return items$.pipe(concat(next$));
         })
       );
@@ -133,9 +135,7 @@ export class DataQuery {
 
   // makes each item return as an array
   private getInstantiations(raw: RawPbItem): RawPbInstantiation[] {
-    return Array.isArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation)
-      ? raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation
-      : [raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation];
+    return this.asArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreInstantiation);
   }
 
   private readonly minimumDate = moment('1910-01-01');
@@ -173,9 +173,10 @@ export class DataQuery {
       hasNoDate = true;
     }
 
-    const description = Array.isArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreDescription)
-      ? raw.xml2json.pbcoreDescriptionDocument.pbcoreDescription
-      : [raw.xml2json.pbcoreDescriptionDocument.pbcoreDescription];
+    const description = this.asArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreDescription);
+    const genres = raw.xml2json.pbcoreDescriptionDocument.pbcoreGenre === undefined
+      ? undefined
+      : this.asArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreGenre);
     return {
       id: raw.id,
       title: raw.title,
@@ -184,7 +185,8 @@ export class DataQuery {
       hasOnlineReadingRoom: this.getRawPbItemHasOnlineReadingRoom(raw),
       description: description,
       mediaType: firstInstantiationWithDate.instantiationMediaType,
-      hasNoDate: hasNoDate
+      hasNoDate: hasNoDate,
+      genres: genres       
     }
   }
 
@@ -214,4 +216,7 @@ export class DataQuery {
     return false;
   }
 
+  private asArray<T>(x: T|T[]): T[] {
+    return Array.isArray(x) ? x : [x];
+  }
 }
