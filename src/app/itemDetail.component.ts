@@ -19,7 +19,7 @@ import { PbItem } from './pbItem';
       </div>
       <div *ngIf="item.transcriptUrl">
         <a class="wordCloudLlink" target="_blank "[routerLink]="['transcript']" [queryParams]="{id: item.id, transcriptUrl: item.transcriptUrl}" queryParamsHandling="merge">
-          Transcript Word Cloud by Jed
+          Transcript Word Cloud
         </a>
       </div>
     </div>
