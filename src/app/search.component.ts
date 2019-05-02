@@ -14,7 +14,7 @@ import { PbItem } from './pbItem';
         Explore the American Archive Reading Room ... 
       </h1>
       <div style="display: flex; flex-direction: row">
-        <img src="/assets/aapb-q-50.jpg">
+        <img style="margin: 0 auto;" src="/assets/aapb-q-50.jpg">
       </div>
     <div>
       <input
