@@ -36,6 +36,11 @@ import { PbItem } from './pbItem';
     <div>
       <histogram [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></histogram>
     </div>
+
+    <div>
+      <bubbles [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></bubbles>
+    </div>
+
   </div>
   
   `,
