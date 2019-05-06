@@ -105,4 +105,6 @@ export class SearchComponent {
       y: e.clientY
     }
   }
+
+  // xx test.
 }
