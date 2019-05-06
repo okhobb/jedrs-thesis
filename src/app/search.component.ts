@@ -28,7 +28,7 @@ import { PbItem } from './pbItem';
 
     <div id="tooltip" *ngIf="currentItem"
       [style.left.px]="tooltipPosition.x"
-      [style.top.px]="tooltipPosition.y"
+      [style.bottom.px]="tooltipPosition.y"
     >
       <item-detail [item]="currentItem"></item-detail>
     </div>
@@ -87,9 +87,14 @@ export class SearchComponent {
 
   handleItemClick(item: PbItem): void {
     this.currentItem = item;
+    // console.log('document.scrollingElement.scrollHeight',document.scrollingElement.scrollHeight)
+    // console.log('this.mousePosition.y', this.mousePosition.y)
+    // console.log('document.scrollingElement.scrollTop', document.scrollingElement.scrollTop)
+    // console.log('document.scrollingElement.clientHeight', document.scrollingElement.clientHeight)
+    // console.log('document.scrollingElement.clientTop', document.scrollingElement.clientTop)
     this.tooltipPosition = {
       x: this.mousePosition.x + document.scrollingElement.scrollLeft,
-      y: this.mousePosition.y + document.scrollingElement.scrollTop
+      y: document.scrollingElement.clientHeight - (this.mousePosition.y + document.scrollingElement.scrollTop)
     }
   }
 
