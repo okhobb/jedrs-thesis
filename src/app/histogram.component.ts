@@ -30,6 +30,7 @@ enum Orientation {
   styles: [`
     .histogram {
       width: 100%;
+      text-align: left;
     }
   `]
 })
@@ -98,7 +99,26 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   // choosing based on orientation
+
+  // keep track of the max idx.
+
+  private maxIdx = 0;
+
+  private updateSize(): void {
+    if (this.orientation === Orientation.Horizontal) {
+      this.svgHeight = this.maxIdx * this.radius + this.margin.top + this.margin.bottom;
+    } else {
+      this.svgWidth = this.maxIdx * this.radius + this.margin.left + this.margin.right;
+    }
+  }
+
   private getCircleX(d: any): number {
+
+    if (d.idx > this.maxIdx) {
+      this.maxIdx = d.idx;
+      this.updateSize();
+    }
+
     return (this.orientation === Orientation.Horizontal)
       ? 0
       : (d.idx * 2 * d.radius - d.radius);
@@ -106,6 +126,12 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   // choosing based on orientation
   private getCircleY(d: any): number {
+
+    if (d.idx > this.maxIdx) {
+      this.maxIdx = d.idx;
+      this.updateSize();
+    }
+
     return (this.orientation === Orientation.Horizontal)
       ? (-d.idx * 2 * d.radius - d.radius)
       : 0;
