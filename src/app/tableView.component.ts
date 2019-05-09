@@ -12,6 +12,20 @@ interface YearPbItem {
     selector: 'table-view',
     template: `
         <div>   
+            <div style="text-align: left;">
+                <div>
+                    <span class="item"
+                        [style.background-color]="getCircleBackground({mediaType: 'Moving Image'})"
+                        [style.border-color]="getCircleColor({mediaType: 'Moving Image'})"
+                    ></span> Moving Image
+                </div>
+                <div>
+                    <span class="item"
+                        [style.background-color]="getCircleBackground({mediaType: ''})"
+                        [style.border-color]="getCircleColor({mediaType: ''})"
+                    ></span> Audio
+                </div>
+            </div>
             <table style="width: 100%; text-align: left;">
                 <tbody>
                     <tr *ngFor="let year of yearPbItems" class="item-row">
