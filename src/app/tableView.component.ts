@@ -15,7 +15,7 @@ interface YearPbItem {
             <table style="width: 100%; text-align: left;">
                 <tbody>
                     <tr *ngFor="let year of yearPbItems" class="item-row">
-                        <td>{{year.year}}</td>
+                        <td>{{year.year === unknownDateYear ? 'Unknown' : year.year}}</td>
                         <td>
                             <span 
                                 *ngFor="let item of year.items"
@@ -62,6 +62,8 @@ export class TableViewComponent implements OnChanges, OnDestroy {
     pbItems: PbItem[] = [];
 
     yearPbItems: YearPbItem[] = [];
+
+    readonly unknownDateYear = 3000;
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['pbItemsObs']) {
@@ -110,7 +112,13 @@ export class TableViewComponent implements OnChanges, OnDestroy {
         const yearMap = new Map<number, PbItem[]>();
         const years = [];
         this.pbItems.forEach(item => {
-            const year = item.date.getUTCFullYear();
+            const year = item.hasNoDate ? this.unknownDateYear : item.date.getUTCFullYear();
+
+            if (Number.isNaN(year)) {
+                console.log('year is nan', item);
+                return;
+            }
+
             if (! yearMap.has(year)) {
                 yearMap.set(year, []);
                 years.push(year);
