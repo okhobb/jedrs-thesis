@@ -8,8 +8,8 @@ import { PbItem } from './pbItem';
 
 @Component({
   template: `
-  <div>
-    <div style="text-align:center">
+  <div id="main-container">
+    <div id="right-container" style="text-align:center">
       <h1>
         Explore the American Archive Reading Room ... 
       </h1>
@@ -26,13 +26,9 @@ import { PbItem } from './pbItem';
       <button (click)="doSearch()">Search</button>
     </div>
 
-    <div id="tooltip" *ngIf="currentItem"
-      [style.left.px]="tooltipPosition.x"
-      [style.bottom.px]="tooltipPosition.y"
-    >
-      <item-detail [item]="currentItem"></item-detail>
+    <div>
+      <table-view [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></table-view>
     </div>
-
     <div>
       <histogram [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></histogram>
     </div>
@@ -40,18 +36,33 @@ import { PbItem } from './pbItem';
     <div>
       <bubbles [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></bubbles>
     </div>
-
+  </div>
+  <div id="tooltip">
+    <item-detail *ngIf="currentItem" [item]="currentItem"></item-detail>
   </div>
   
   `,
   styles: [`
+    #main-container {
+      display: flex;
+      flex-flow: row;
+      height: 100%;
+    }
+
+    #right-container {
+      flex: 1;
+      overflow: scroll;
+      height: 100%;
+    }
+
     #tooltip {
-      position: absolute;
-      width: 500px;
+      width: 300px;
       background-color: #fafafa;
       border: 1px solid gray;
       border-radius: 4px;
       padding: 5px 5px 5px 5px;
+      height: 100%;
+      overflow-y: scroll;
     }
   `]
 })
@@ -67,11 +78,7 @@ export class SearchComponent {
   pbItemsObs: Observable<PbItem[]>; // where to put the results per this.pbItemsObs below
   currentItem: PbItem|undefined; // item detail component
 
-  tooltipPosition: { x: number, y: number } = { x: 0, y: 0 };
-  private mousePosition: { x: number, y: number } = { x: 0, y: 0 };
-
   constructor(
-    private readonly element: ElementRef,
     private readonly dataQuery: DataQuery) {} // this is where the DataQuery class is injected (it's a 'singleton' instance of the class)
 
   doSearch(): void {
@@ -87,24 +94,6 @@ export class SearchComponent {
 
   handleItemClick(item: PbItem): void {
     this.currentItem = item;
-    // console.log('document.scrollingElement.scrollHeight',document.scrollingElement.scrollHeight)
-    // console.log('this.mousePosition.y', this.mousePosition.y)
-    // console.log('document.scrollingElement.scrollTop', document.scrollingElement.scrollTop)
-    // console.log('document.scrollingElement.clientHeight', document.scrollingElement.clientHeight)
-    // console.log('document.scrollingElement.clientTop', document.scrollingElement.clientTop)
-    this.tooltipPosition = {
-      x: this.mousePosition.x + document.scrollingElement.scrollLeft,
-      y: document.scrollingElement.clientHeight - (this.mousePosition.y + document.scrollingElement.scrollTop)
-    }
   }
 
-  @HostListener('document:mousemove', ['$event'])
-  handleMouseMove(e: MouseEvent): void {
-    this.mousePosition = {
-      x: e.clientX,
-      y: e.clientY
-    }
-  }
-
-  // xx test.
 }
