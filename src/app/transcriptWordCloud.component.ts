@@ -38,11 +38,10 @@ interface Transcript {
   template: `
     <div *ngIf="isLoading" style="margin: 10px 10px 10px 10px;">
       <div class="balls" style="margin: auto">
-      <div></div>
-      <div></div>
-      <div></div>
-    </div>
-  
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
     </div>
     
     <div [style.visibility]="isLoading ? 'hidden' : 'visible'">
@@ -114,7 +113,7 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
       this.transcriptSub.unsubscribe();
     }
   }
-  
+
   private setLayout(wordCounts: {[w: string]: number}): void {
     console.log('about to layout');
     this.layout = d3Cloud()
@@ -126,8 +125,8 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
         }
       }))
       .padding(5)
-      .spiral('archimedean')
-      //.rotate(function() { return ~~(Math.random() * 2) * 90; })
+      //.spiral('archimedean')
+      .rotate(function() { return 0; })
       .font("courier")
       .fontSize(function(d) { return d.size; })
       .on("end", this.draw.bind(this));
