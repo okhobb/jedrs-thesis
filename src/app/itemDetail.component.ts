@@ -7,39 +7,66 @@ import { PbItem } from './pbItem';
   selector: 'item-detail',
   template: `
     <div class="item-detail-box">
-      <div class="title">{{item.title}}</div>
-      <div class="date">{{item.date | date}}</div>
-      <div *ngIf="item.genres && item.genres.length" class="genres-list">
-        <ul>
-          <li *ngFor="let genre of item.genres">
-            {{genre}}
-          </li>
-        </ul>
+      <div class="info-panel-header serif">
+        Entry details
       </div>
-      <div *ngFor="let descriptionRow of item.description"
-        class="description"
-      >
-        {{descriptionRow}}
-      </div>
-      <div class="catalogLink">
-        <a [href]="getUrlFromId(item)" target="_blank">Go to catalog entry....</a>
-      </div>
-      <div *ngIf="item.transcriptUrl">
-        <a class="wordCloudLlink" target="_blank "[routerLink]="['transcript']" [queryParams]="{id: item.id, transcriptUrl: item.transcriptUrl}" queryParamsHandling="merge">
-          Transcript Word Cloud
-        </a>
-      </div>
+
+      <ng-container *ngIf="item">
+        <div class="title">Title: {{item.title}}</div>
+        <div class="date bottom-margin">Date: {{item.date | date}}</div>
+        <div class="genres-header">Genres:</div>
+        <div *ngIf="item.genres && item.genres.length" class="genres-list">
+          <ul>
+            <li *ngFor="let genre of item.genres">
+              {{genre}}
+            </li>
+          </ul>
+        </div>
+        <div class="description-header">Description:</div>
+        <div *ngFor="let descriptionRow of item.description"
+          class="description"
+        >
+          {{descriptionRow}}
+        </div>
+        <div class="catalogLink">
+          <a [href]="getUrlFromId(item)" target="_blank">Go to catalog entry....</a>
+        </div>
+        <div *ngIf="item.transcriptUrl">
+          <a class="wordCloudLlink" target="_blank "[routerLink]="['transcript']" [queryParams]="{id: item.id, transcriptUrl: item.transcriptUrl}" queryParamsHandling="merge">
+            Transcript Word Cloud
+          </a>
+        </div>
+      </ng-container>
     </div>
   `,
   styles: [
     `
+    .bottom-margin {
+      margin-bottom: 13px;
+    }
+
+    .description-header {
+      font-size: 12px;
+    }
+
+    .genres-header {
+      font-size: 12px;
+    }
+
+    .info-panel-header {
+      margin-top: 20px;
+      margin-bottom: 15px;
+      font-style: italic;
+      font-size: 10px;
+    }
+
     .title {
       font-size: 14px;
       font-weight: bold;
     }
 
     .date {
-      font-size: 8px;
+      font-size: 12px;
     }
 
     .description {
@@ -48,15 +75,16 @@ import { PbItem } from './pbItem';
     }
 
     .catalogLink {
-      font-size: 10px;
+      font-size: 12px;
     }
 
     .wordCloudLlink {
-      font-size: 10px;
+      font-size: 12px;
     }
 
     .genres-list {
       text-align: left;
+      font-size: 13px;
     }
 
     `

@@ -38,7 +38,7 @@ import { PbItem } from './pbItem';
     </div>
   </div>
   <div id="tooltip">
-    <item-detail *ngIf="currentItem" [item]="currentItem"></item-detail>
+    <item-detail [item]="currentItem"></item-detail>
   </div>
   
   `,
