@@ -20,6 +20,11 @@ interface YearPbItem {
                             <span 
                                 *ngFor="let item of year.items"
                                 class="item"
+                                [style.height.px]="circleRadius"
+                                [style.width.px]="circleRadius"
+                                [style.border-radius.px]="halfCircleRadius"
+                                [style.background-color]="getCircleBackground(item)"
+                                [style.border-color]="getCircleColor(item)"
                                 (mousemove)="clickedItem.next(item)"
                             >&nbsp;</span>
                         </td>
@@ -37,8 +42,10 @@ interface YearPbItem {
                 height: 6px;
                 width: 6px;
                 border-radius: 3px;
+                border-width: 1px;
                 background-color: black;
                 vertical-align: middle;
+                border-style: solid;
             }
         `
     ]
@@ -47,6 +54,9 @@ export class TableViewComponent implements OnChanges, OnDestroy {
 
     @Input() pbItemsObs: Observable<PbItem[]>;
     @Output() clickedItem: EventEmitter<PbItem> = new EventEmitter<PbItem>();
+
+    readonly circleRadius = 8;
+    readonly halfCircleRadius = this.circleRadius / 2;
 
     private pbItemsSub: Subscription;
     pbItems: PbItem[] = [];
@@ -74,6 +84,26 @@ export class TableViewComponent implements OnChanges, OnDestroy {
             this.pbItemsSub.unsubscribe();
         }
     }
+
+    getCircleBackground(pbItem: PbItem): string {
+        if (pbItem.mediaType === 'Moving Image') {
+            return this.getCircleColor(pbItem)
+        } else {
+            return 'transparent';
+        }
+    }
+
+    getCircleColor(pbItem: PbItem): string {
+        // Make them all consistently black ... for now. TODO.
+        return 'black';
+        // if (pbItem.hasNoDate) {
+        //   return 'purple';
+        // }
+        // if (pbItem.mediaType === 'Moving Image') {
+        //   return 'blue'; 
+        // }
+        // return 'red';
+      }
 
     private updateData(): void {
         this.yearPbItems = [];
