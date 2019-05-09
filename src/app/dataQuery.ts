@@ -145,7 +145,8 @@ export class DataQuery {
     const instantiations = this.getInstantiations(raw);
     let firstInstantiationWithDate: RawPbInstantiation = undefined;
     for (let i = 0; i < instantiations.length; i++) {
-      if (instantiations[i].instantiationDate) {
+      if (instantiations[i].instantiationDate
+        && !Number.isNaN(moment(instantiations[i].instantiationDate, 'YYYY-MM-DD').toDate().getUTCFullYear())) {
         firstInstantiationWithDate = instantiations[i];
         break;
       }
@@ -171,6 +172,10 @@ export class DataQuery {
     if (date.getTime() < this.minimumDate.toDate().getTime()) {
       date = new Date();
       hasNoDate = true;
+    }
+
+    if (Number.isNaN(date.getUTCFullYear())) {
+      console.log('bad date', dateStr, raw)
     }
 
     const description = this.asArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreDescription);
