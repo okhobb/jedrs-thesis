@@ -1,6 +1,6 @@
 // what is shown when a circle result is clicked; will be info panel
 
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, AfterViewInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 
 import {Observable, defer, pipe, of, empty, Subscription} from 'rxjs'; // rxjs is allowing for the repeated data query in getItems
 import {map, concat, mergeMap} from 'rxjs/operators'; 
@@ -36,7 +36,16 @@ interface Transcript {
 @Component({
   selector: 'transcript-word-cloud',
   template: `
-    <div>
+    <div *ngIf="isLoading" style="margin: 10px 10px 10px 10px;">
+      <div class="balls" style="margin: auto">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  
+    </div>
+    
+    <div [style.visibility]="isLoading ? 'hidden' : 'visible'">
       <svg #wordCloudSvg [attr.width]="layoutSize[0]" [attr.height]="layoutSize[1]"></svg>
     </div>
   `,
@@ -50,11 +59,17 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
   @ViewChild('wordCloudSvg') wordCloudSvg: ElementRef<SVGElement>;
   @Input() transcriptUrl: string;
 
+  isLoading: boolean = true;
+
   private transcriptSub: Subscription;
   private d3SvgElt: any;
 
   readonly layoutSize = [1000, 1000];
   layout: any;
+
+  constructor(private readonly changeRef: ChangeDetectorRef) {
+
+  }
 
   ngAfterViewInit(): void {
     this.d3SvgElt = d3.select(this.wordCloudSvg.nativeElement)
@@ -64,7 +79,7 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
 
   ngOnChanges(changes: SimpleChanges): void {
     console.log('the world cloud change', changes);
-
+    this.isLoading = true;
     if (this.transcriptSub) {
       this.transcriptSub.unsubscribe();
     }
@@ -79,6 +94,7 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
       responseType: isText ? 'text' : 'json'
     };
     this.transcriptSub = ajax(ajaxConfig).subscribe(x => {
+      this.isLoading = false;
       console.log('got transcript', this.transcriptUrl, ajaxConfig, x);
       const wordCounts = isText
         ? this.getWordCountsFromRawText(x.response)
@@ -86,6 +102,9 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
       console.log('counts', wordCounts);
       this.setLayout(wordCounts);
       this.layout.start();
+
+      this.changeRef.detectChanges();
+      this.changeRef.markForCheck();
     });
 
   }
@@ -95,7 +114,7 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
       this.transcriptSub.unsubscribe();
     }
   }
-
+  
   private setLayout(wordCounts: {[w: string]: number}): void {
     console.log('about to layout');
     this.layout = d3Cloud()

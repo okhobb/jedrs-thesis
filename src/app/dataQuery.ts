@@ -113,7 +113,7 @@ export class DataQuery {
         xml2json: parser.parse(doc.xml)
       }
     });
-    console.log('doc with parsed xml is', docsWithParsedXml);
+    //console.log('doc with parsed xml is', docsWithParsedXml);
     return docsWithParsedXml;
   }
 
