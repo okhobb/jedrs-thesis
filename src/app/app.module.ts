@@ -12,6 +12,7 @@ import {TranscriptWordCloudComponent} from './transcriptWordCloud.component';
 import {TranscriptComponent} from './transcript.component';
 import {SearchComponent} from './search.component';
 import {BubblesComponent} from './bubbles.component';
+import {TableViewComponent} from './tableView.component';
 import {DataQuery} from './dataQuery';
 
 
@@ -19,6 +20,10 @@ const appRoutes: Routes = [
   { path: '', component: SearchComponent },
   { path: 'transcript', component: TranscriptComponent }
 ];
+
+const routeConfig = {
+  useHash: true
+};
 
 @NgModule({
   declarations: [
@@ -28,12 +33,13 @@ const appRoutes: Routes = [
     TranscriptWordCloudComponent,
     SearchComponent,
     TranscriptComponent,
-    BubblesComponent
+    BubblesComponent,
+    TableViewComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    RouterModule.forRoot(appRoutes)
+    RouterModule.forRoot(appRoutes, routeConfig)
   ],
   providers: [
     DataQuery

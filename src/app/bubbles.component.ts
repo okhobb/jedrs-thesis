@@ -9,8 +9,16 @@ import { PbItem } from './pbItem';
 @Component({
   selector: 'bubbles',
   template: `
-  
-    <svg #svgElt [attr.width]="width" [attr.height]="height"></svg>
+    <div>
+      <div [style.visibility]="isLoading ? 'visible' :  'hidden'" style="margin: 10px 10px 10px 10px;">
+        <div class="balls" style="margin: auto">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+      <svg #svgElt [attr.width]="width" [attr.height]="height"></svg>
+    </div>
   `
 })
 export class BubblesComponent implements AfterViewInit, OnChanges {
@@ -19,6 +27,8 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
   @Input('pbItemsObs') pbItemsObs: Observable<PbItem[]>;
   @Output() clickedItem: EventEmitter<PbItem> = new EventEmitter<PbItem>();
 
+  isLoading: boolean = true;
+
   readonly width = 960;
   readonly height = 500;
   private readonly padding = 1.5; // separation between same-color circles
@@ -26,6 +36,8 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
   private readonly maxRadius = 12;
 
   private sub: Subscription;
+
+  private readonly bubbleRadius = 5;
 
   private pbItems: PbItem[] = [];
   ngAfterViewInit(): void {
@@ -36,6 +48,7 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
       if (! this.pbItemsObs) {
         return;
       }
+      this.isLoading = true;
       if (this.sub) {
         this.sub.unsubscribe();
       }
@@ -49,6 +62,7 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
         err => console.error(err),
         () => {
           this.draw();
+          this.isLoading = false;
         });
     }
   }
@@ -82,7 +96,8 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
     const nodes = this.pbItems.map(item => {
       const firstGenre = item.genres[0]
       const i = genres.indexOf(firstGenre);
-      const r = Math.sqrt((i + 1) / m * -Math.log(Math.random())) * this.maxRadius;
+      const r = this.bubbleRadius;
+      //Math.sqrt((i + 1) / m * -Math.log(Math.random())) * this.maxRadius;
       const d = {
         cluster: i,
         radius: r,
