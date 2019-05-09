@@ -68,7 +68,7 @@ enum SearchMode {
 
     #tooltip {
       width: 300px;
-      background-color: #fafafa;
+      background-color: #FFFDD0;
       border: 1px solid gray;
       border-radius: 4px;
       padding: 5px 5px 5px 5px;
@@ -119,12 +119,14 @@ export class SearchComponent {
     this.pbItemsObs = this.dataQuery.search(searchTerm, pageSize)
       .pipe(take(batchLimit));
 
-    this.pbSub = this.pbItemsObs.subscribe(items => {
-      this.allItems = [...this.allItems, ...items];
-      if (! this.transcriptUrl) {
-        this.setNextTranscriptUrl();
-      }
-    });
+    if (mode === SearchMode.transcript) {
+      this.pbSub = this.pbItemsObs.subscribe(items => {
+        this.allItems = [...this.allItems, ...items];
+        if (! this.transcriptUrl) {
+          this.setNextTranscriptUrl();
+        }
+      });
+    }
   }
 
   private setNextTranscriptUrl(): void {
