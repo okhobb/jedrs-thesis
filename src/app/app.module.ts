@@ -21,6 +21,10 @@ const appRoutes: Routes = [
   { path: 'transcript', component: TranscriptComponent }
 ];
 
+const routeConfig = {
+  useHash: true
+};
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -35,7 +39,7 @@ const appRoutes: Routes = [
   imports: [
     BrowserModule,
     AppRoutingModule,
-    RouterModule.forRoot(appRoutes)
+    RouterModule.forRoot(appRoutes, routeConfig)
   ],
   providers: [
     DataQuery
