@@ -24,7 +24,7 @@ enum SearchMode {
     <div>
       <input
         #searchInput
-        type="text" placeholder="Search the archive's reading room ...">
+        type="text" placeholder="Search ...">
       <label>
         Limit: <input #outputLimitInput type="number" value="1000">
       </label>
