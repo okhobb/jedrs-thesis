@@ -2,9 +2,9 @@
 
 import { Component, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, AfterViewInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 
-import {Observable, defer, pipe, of, empty, Subscription} from 'rxjs'; // rxjs is allowing for the repeated data query in getItems
-import {map, concat, mergeMap} from 'rxjs/operators'; 
-import {ajax} from 'rxjs/ajax';
+import { Observable, defer, pipe, of, empty, Subscription } from 'rxjs'; // rxjs is allowing for the repeated data query in getItems
+import { map, concat, mergeMap } from 'rxjs/operators';
+import { ajax } from 'rxjs/ajax';
 import * as d3 from 'd3';
 
 
@@ -70,13 +70,13 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('the world cloud change', changes);
+    //console.log('the world cloud change', changes);
     this.isLoading = true;
     if (this.transcriptSub) {
       this.transcriptSub.unsubscribe();
     }
-    
-    if (! this.transcriptUrl) {
+
+    if (!this.transcriptUrl) {
       return;
     }
 
@@ -85,13 +85,14 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
       url: this.transcriptUrl,
       responseType: isText ? 'text' : 'json'
     };
+    //this.d3SvgElt.selectAll("text").remove();
     this.transcriptSub = ajax(ajaxConfig).subscribe(x => {
       this.isLoading = false;
-      console.log('got transcript', this.transcriptUrl, ajaxConfig, x);
+      //console.log('got transcript', this.transcriptUrl, ajaxConfig, x);
       const wordCounts = isText
         ? this.getWordCountsFromRawText(x.response)
         : this.getWordCountsFromTranscriptJson(x.response);
-      console.log('counts', wordCounts);
+      //console.log('counts', wordCounts);
       this.setLayout(wordCounts);
       this.layout.start();
 
@@ -107,8 +108,7 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
     }
   }
 
-  private setLayout(wordCounts: {[w: string]: number}): void {
-    console.log('about to layout');
+  private setLayout(wordCounts: { [w: string]: number }): void {
     this.layout = d3Cloud()
       .size(this.layoutSize)
       .words(Object.keys(wordCounts).map(word => {
@@ -119,16 +119,16 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
       }))
       .padding(5)
       //.spiral('archimedean')
-      .rotate(function() { return 0; })
-      .font("courier")
-      .fontSize(function(d) { return d.size; })
+      .rotate(function () { return 0; })
+      .font("Lato")
+      .fontSize(function (d) { return d.size; })
       .on("end", this.draw.bind(this));
   }
 
   private minWordLength = 5;
 
-  private getWordCountsFromTranscriptJson(transcriptResponse: Transcript): {[w: string]: number} {
-    const counts: {[w: string]: number} = {};
+  private getWordCountsFromTranscriptJson(transcriptResponse: Transcript): { [w: string]: number } {
+    const counts: { [w: string]: number } = {};
     return transcriptResponse.parts.reduce((counts, part) => {
       part.text.split(/\s/).forEach(word => {
         if (word.length < this.minWordLength) {
@@ -144,8 +144,8 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
     }, counts);
   }
 
-  private getWordCountsFromRawText(text: string): {[w: string]: number} {
-    const counts: {[w: string]: number} = {};
+  private getWordCountsFromRawText(text: string): { [w: string]: number } {
+    const counts: { [w: string]: number } = {};
     text.split(/\s/).forEach(word => {
       if (word.length < this.minWordLength) {
         return;
@@ -160,18 +160,31 @@ export class TranscriptWordCloudComponent implements OnChanges, OnDestroy, After
   }
 
   private draw(words: any) {
-    console.log('about to draw', words)
-    this.d3SvgElt
-      .selectAll("text")
-        .data(words)
+
+    const cloud = this.d3SvgElt.selectAll("g text")
+      .data(words, d => d.text);
+
+    cloud
       .enter().append("text")
-        .style("font-size", function(d) { return d.size + "px"; })
-        .style("font-family", "Impact")
-        .attr("text-anchor", "middle")
-        .attr("transform", function(d) {
-          return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-        })
-        .text(function(d) { return d.text; });
+      .style("font-size", d => `${d.size}px`)
+      .style("font-family", "Lato")
+      .attr("text-anchor", "middle")
+      .attr("transform", d => `translate(${d.x}, ${d.y})rotate(${d.rotate})`)
+      .text(d => d.text);
+
+    cloud
+      .transition()
+      .duration(600)
+      .style("font-size", d => `${d.size}px`)
+      .attr("transform", d => `translate(${d.x}, ${d.y})rotate(${d.rotate})`)
+      .style("fill-opacity", 1);
+
+    cloud.exit()
+      .transition()
+      .duration(200)
+      .style('fill-opacity', 1e-6)
+      .attr('font-size', 1)
+      .remove();
   }
 
 }
