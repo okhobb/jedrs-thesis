@@ -1,10 +1,17 @@
-import {Component, ViewChild, ElementRef, AfterViewInit, Input, OnChanges, SimpleChanges, EventEmitter, Output} from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewInit, Input, OnChanges, SimpleChanges, EventEmitter, Output } from '@angular/core';
 
 import * as d3 from 'd3';
 
-import {Subscription, Observable} from 'rxjs';
+import { Subscription, Observable } from 'rxjs';
 
 import { PbItem } from './pbItem';
+
+
+interface BubbleData {
+  cluster: number;
+  radius: number;
+  pbItem: PbItem;
+}
 
 @Component({
   selector: 'bubbles',
@@ -34,12 +41,34 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
   private readonly bubbleRadius = 5;
 
   private pbItems: PbItem[] = [];
+
+  private d3Force: d3.Simulation<{}, undefined>;
+  private nodes: BubbleData[] = [];
+  private clusters: BubbleData[] = [];
+  private bubbles: d3.Selection<d3.BaseType, BubbleData, SVGGElement, {}>;
+  private enteringBubbles: d3.Selection<d3.BaseType, BubbleData, SVGGElement, {}>;
+  private updatingBubbles: d3.Selection<d3.BaseType, BubbleData, SVGGElement, {}>;
+
+  private d3Root: d3.Selection<SVGGElement, {}, null, undefined>;
+
   ngAfterViewInit(): void {
+    this.d3Force = d3.forceSimulation()
+      .force("center", d3.forceCenter())
+      .force("collide", d3.forceCollide().radius((d: any) => d.radius + 1.5).iterations(1))
+      .force("cluster", alpha => this.forceCluster(alpha))
+      .force("gravity", d3.forceManyBody())
+      .force("x", d3.forceX().strength(.7))
+      .force("y", d3.forceY().strength(.7))
+      .on("tick", () => this.tick());
+
+    this.d3Root = d3.select(this.svgElt.nativeElement)
+      .append('g')
+      .attr('transform', 'translate(' + this.width / 2 + ',' + this.height / 2 + ')');
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['pbItemsObs']) {
-      if (! this.pbItemsObs) {
+      if (!this.pbItemsObs) {
         return;
       }
       this.isLoading = true;
@@ -51,7 +80,6 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
         items => {
           this.pbItems = [...this.pbItems, ...items]
             .filter(item => item.genres !== undefined);
-          console.log('got some', items.length)
         },
         err => console.error(err),
         () => {
@@ -63,8 +91,6 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
 
   private draw(): void {
 
-    //d3.select(this.svgElt.nativeElement).remove();
-
     const genresMap = this.pbItems.reduce((memo, curr) => {
       memo[curr.genres[0]] = true;
       return memo;
@@ -74,7 +100,6 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
     const m = genres.length; // number of distinct clusters
 
     console.log('genres are', genres);
-  
 
     const colors = genres.map((genre, idx) => {
       const h = Math.floor(360.0 * (idx / m));
@@ -82,12 +107,12 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
     });
 
     var color = d3.scaleOrdinal(colors)
-        .domain(genres);
-    
+      .domain(genres);
+
     // The largest node for each cluster.
-    var clusters = new Array(m);
-    
-    const nodes = this.pbItems.map(item => {
+    this.clusters = [];
+
+    this.nodes = this.pbItems.map(item => {
       const firstGenre = item.genres[0]
       const i = genres.indexOf(firstGenre);
       const r = this.bubbleRadius;
@@ -97,50 +122,65 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
         radius: r,
         pbItem: item
       };
-      if (!clusters[i] || (r > clusters[i].radius)) clusters[i] = d;
+      if (!this.clusters[i] || (r > this.clusters[i].radius)) this.clusters[i] = d;
       return d;
     })
-    
-    var forceCollide = d3.forceCollide()
-        .radius(function(d: any) { return d.radius + 1.5; })
-        .iterations(1);
-    
-    var force = d3.forceSimulation()
-        .nodes(nodes)
-        .force("center", d3.forceCenter())
-        .force("collide", forceCollide)
-        .force("cluster", forceCluster)
-        .force("gravity", d3.forceManyBody())
-        .force("x", d3.forceX().strength(.7))
-        .force("y", d3.forceY().strength(.7))
-        .on("tick", tick);
-    
-    var svg = d3.select(this.svgElt.nativeElement)
-      .append('g')
-        .attr('transform', 'translate(' + this.width / 2 + ',' + this.height / 2 + ')');
-    
-    var circle = svg.selectAll("circle")
-        .data(nodes)
-      .enter().append("circle")
-        .attr("r", function(d) { return d.radius; })
-        .style("fill", function(d: any) { return <any>color(d.cluster); })
-        .on('mouseover', d => this.handleMouseover(d));
+    this.d3Force.nodes(this.nodes);
 
-    
-    function tick() {
-      circle
-          .attr("cx", function(d: any) { return d.x; })
-          .attr("cy", function(d: any) { return d.y; });
-    }
-    
-    function forceCluster(alpha) {
-      for (var i = 0, n = nodes.length, node, cluster, k = alpha * 1; i < n; ++i) {
-        node = nodes[i];
-        cluster = clusters[node.cluster];
-        node.vx -= (node.x - cluster.x) * k;
-        node.vy -= (node.y - cluster.y) * k;
-      }
+    this.bubbles = this.d3Root.selectAll("circle")
+      .data(this.nodes, (d: BubbleData) => {
+        return d.pbItem.id;
+//        return ''+Math.random();
+      });
+
+    this.enteringBubbles = this.bubbles
+      .enter().append("circle")
+      .attr("r", function (d) { return d.radius; })
+      .style("fill", (d: any) => {
+        if (d.pbItem.mediaType === 'Moving Image') {
+          return <any>color(d.cluster);
+        } else {
+          return 'none';
+        }
+      })
+      .style("stroke", (d: any) => <any>color(d.cluster))
+      .style("stroke-width", () => 1)
+      .on('mouseover', d => this.handleMouseover(d));
+
+    //this.updatingBubbles = this.bubbles.();
+
+    this.bubbles.exit()
+      .transition()
+      //.on("end", d => console.log('removeing ', d))
+      .remove();
+
+
+    this.d3Force
+      .alpha(1)
+      .restart();
   }
+
+  private tick() {
+    if (! this.bubbles) {
+      return;
+    }
+    this.enteringBubbles
+      .attr("cx", (d: any) => d.x)
+      .attr("cy", (d: any) => d.y);
+    this.bubbles
+      .attr("cx", (d: any) => d.x)
+      .attr("cy", (d: any) => d.y);
+  }
+
+  private forceCluster(alpha) {
+    const nodes = this.nodes;
+    const clusters = this.clusters;
+    for (var i = 0, n = nodes.length, node, cluster, k = alpha * 1; i < n; ++i) {
+      node = nodes[i];
+      cluster = clusters[node.cluster];
+      node.vx -= (node.x - cluster.x) * k;
+      node.vy -= (node.y - cluster.y) * k;
+    }
   }
 
   private handleMouseover(d3DataPt: any): void {
