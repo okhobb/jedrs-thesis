@@ -36,14 +36,7 @@ interface Transcript {
 @Component({
   selector: 'transcript-word-cloud',
   template: `
-    <div *ngIf="isLoading" style="margin: 10px 10px 10px 10px;">
-      <div class="balls" style="margin: auto">
-        <div></div>
-        <div></div>
-        <div></div>
-      </div>
-    </div>
-    
+    <div loading [isLoading]="isLoading"></div>    
     <div [style.visibility]="isLoading ? 'hidden' : 'visible'">
       <svg #wordCloudSvg [attr.width]="layoutSize[0]" [attr.height]="layoutSize[1]"></svg>
     </div>

@@ -10,13 +10,7 @@ import { PbItem } from './pbItem';
   selector: 'bubbles',
   template: `
     <div>
-      <div [style.visibility]="isLoading ? 'visible' :  'hidden'" style="margin: 10px 10px 10px 10px;">
-        <div class="balls" style="margin: auto">
-          <div></div>
-          <div></div>
-          <div></div>
-        </div>
-      </div>
+      <div loading [isLoading]="isLoading"></div>    
       <svg #svgElt [attr.width]="width" [attr.height]="height"></svg>
     </div>
   `
