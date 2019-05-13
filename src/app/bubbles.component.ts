@@ -16,22 +16,25 @@ interface BubbleData {
 @Component({
   selector: 'bubbles',
   template: `
-    <div>
-      <div loading [isLoading]="isLoading"></div>    
-      <svg #svgElt [attr.width]="width" [attr.height]="height"></svg>
+    <div style="display: flex; flex-direction: column;">
+      <div loading [isLoading]="isLoading"></div>  
+      <div #svgContainerElt style="width: 100%; flex: 1;">  
+        <svg #svgElt [attr.width]="width" [attr.height]="height"></svg>
+      </div>
     </div>
   `
 })
 export class BubblesComponent implements AfterViewInit, OnChanges {
 
+  @ViewChild('svgContainerElt') svgContainerElt: ElementRef<SVGElement>;
   @ViewChild('svgElt') svgElt: ElementRef<SVGElement>;
   @Input('pbItemsObs') pbItemsObs: Observable<PbItem[]>;
   @Output() clickedItem: EventEmitter<PbItem> = new EventEmitter<PbItem>();
 
   isLoading: boolean = true;
 
-  readonly width = 960;
-  readonly height = 500;
+  width = 960;
+  height = 500;
   private readonly padding = 1.5; // separation between same-color circles
   private readonly clusterPadding = 6; // separation between different-color circles
   private readonly maxRadius = 12;
@@ -51,19 +54,11 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
 
   private d3Root: d3.Selection<SVGGElement, {}, null, undefined>;
 
-  ngAfterViewInit(): void {
-    this.d3Force = d3.forceSimulation()
-      .force("center", d3.forceCenter())
-      .force("collide", d3.forceCollide().radius((d: any) => d.radius + 1.5).iterations(1))
-      .force("cluster", alpha => this.forceCluster(alpha))
-      .force("gravity", d3.forceManyBody())
-      .force("x", d3.forceX().strength(.7))
-      .force("y", d3.forceY().strength(.7))
-      .on("tick", () => this.tick());
+  private hasBeenInited: boolean = false;
 
-    this.d3Root = d3.select(this.svgElt.nativeElement)
-      .append('g')
-      .attr('transform', 'translate(' + this.width / 2 + ',' + this.height / 2 + ')');
+  ngAfterViewInit(): void {
+
+
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -89,8 +84,34 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
     }
   }
 
+  private lazyInitSvg(): void {
+    if (this.hasBeenInited) {
+      return;
+    }
+    this.hasBeenInited = true;
+    const svgBoundingRect = this.svgContainerElt.nativeElement.getBoundingClientRect();
+    this.width = svgBoundingRect.width;
+    this.height = svgBoundingRect.height;
+
+
+    this.d3Force = d3.forceSimulation()
+      .force("center", d3.forceCenter())
+      .force("collide", d3.forceCollide().radius((d: any) => d.radius + 1.5).iterations(1))
+      .force("cluster", alpha => this.forceCluster(alpha))
+      .force("gravity", d3.forceManyBody())
+      .force("x", d3.forceX().strength(.7))
+      .force("y", d3.forceY().strength(.7))
+      .on("tick", () => this.tick());
+
+    this.d3Root = d3.select(this.svgElt.nativeElement)
+      .append('g')
+      .attr('transform', 'translate(' + this.width / 2 + ',' + this.height / 2 + ')');
+  }
+
   private draw(): void {
 
+    this.lazyInitSvg();
+    
     const genresMap = this.pbItems.reduce((memo, curr) => {
       memo[curr.genres[0]] = true;
       return memo;
