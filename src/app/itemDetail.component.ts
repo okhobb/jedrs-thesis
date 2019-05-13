@@ -15,14 +15,16 @@ import { PbItem } from './pbItem';
         <div class="title">Title: {{item.title}}</div>
         <div class="date bottom-margin">Date: {{item.date | date}}</div>
 
-        <div class="creators-header">Creators:</div>
-        <div *ngIf="item.creators && item.creators.length" class="creators-list">
-          <ul>
-            <li *ngFor="let creator of item.creators">
-              {{creator}}
-            </li>
-          </ul>
-        </div>
+        <ng-container *ngIf="item.creators && item.creators.length">
+          <div class="creators-header">Creators:</div>
+          <div class="creators-list">
+            <ul>
+              <li *ngFor="let creator of item.creators">
+                {{creator}}
+              </li>
+            </ul>
+          </div>
+        </ng-container>
 
         <div class="genres-header">Genres:</div>
         <div *ngIf="item.genres && item.genres.length" class="genres-list">
