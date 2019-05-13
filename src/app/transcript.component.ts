@@ -58,7 +58,6 @@ export class TranscriptComponent implements OnInit, OnDestroy {
   private getItem(id: string): void {
     this.dataQuery.getById(id)
       .then(item => {
-        console.log('item is ', item);
         this.currentItem = item;
       });
   }

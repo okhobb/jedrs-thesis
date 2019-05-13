@@ -46,8 +46,7 @@ enum SearchMode {
       </div>
 
       <div *ngIf="searchMode === searchModes.transcript">
-        <button *ngIf="transcriptIndex < allItems.length" (click)="gotoNextTranscript()">Next</button>
-        <transcript-word-cloud [transcriptUrl]="transcriptUrl"></transcript-word-cloud>
+        <transcript-list [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></transcript-list>
       </div>
 
       <div map-view *ngIf="searchMode === searchModes.map" 
@@ -91,14 +90,13 @@ enum SearchMode {
   `]
 })
 export class SearchComponent {
+  
   @ViewChild('outputLimitInput') outputLimitInput: ElementRef<HTMLInputElement>;
   @ViewChild('searchInput') searchInput: ElementRef<HTMLInputElement>;
 
   readonly searchModes = SearchMode;
 
   searchMode: string;
-  transcriptIndex: number = 0;
-  transcriptUrl: string = undefined;
 
   title = 'AAPB Project DRAFT';
 
@@ -106,7 +104,6 @@ export class SearchComponent {
   
   pbItemsObs: Observable<PbItem[]>; // where to put the results per this.pbItemsObs below
   currentItem: PbItem|undefined; // item detail component
-  allItems: PbItem[] = [];
 
   private pbSub: Subscription;
 
@@ -120,46 +117,14 @@ export class SearchComponent {
     }
 
     this.searchMode = mode;
-    this.transcriptIndex = 0;
-    this.allItems = [];
 
     const searchTerm = this.searchInput.nativeElement.value; 
     const limit = this.outputLimitInput.nativeElement.valueAsNumber;
-    console.log('search term is ', searchTerm);
-    console.log('limit is', limit);
     const pageSize = 50;
     const batchLimit = limit / pageSize;
     this.pbItemsObs = this.dataQuery.search(searchTerm, pageSize)
       .pipe(take(batchLimit));
 
-    if (mode === SearchMode.transcript) {
-      this.pbSub = this.pbItemsObs.subscribe(items => {
-        this.allItems = [...this.allItems, ...items];
-        if (! this.transcriptUrl) {
-          this.setNextTranscriptUrl();
-        }
-      });
-    }
-  }
-
-  private setNextTranscriptUrl(): void {
-    console.log('about to find next transcript', this.transcriptIndex)
-    for (let i = this.transcriptIndex; i < this.allItems.length; i++) {
-      if (this.allItems[i].transcriptUrl) {
-        this.currentItem = this.allItems[i];
-        this.transcriptUrl = this.allItems[i].transcriptUrl;
-        this.transcriptIndex = i;
-        console.log('setting current tiem', this.transcriptIndex, this.currentItem, this.transcriptUrl);
-        break;
-      } else {
-        console.log('skipping ', i);
-      }
-    }
-  }
-
-  gotoNextTranscript(): void {
-    this.transcriptIndex++;
-    this.setNextTranscriptUrl();
   }
 
   handleItemClick(item: PbItem): void {

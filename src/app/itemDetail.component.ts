@@ -120,6 +120,5 @@ export class ItemDetailComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('item is now', this.item);
   }
 }
