@@ -1,4 +1,4 @@
-import {Component, ViewChild, ElementRef, HostListener} from '@angular/core';
+import {Component, ViewChild, ElementRef, OnDestroy} from '@angular/core';
 import {Observable, pipe, Subscription} from 'rxjs';
 import {take} from 'rxjs/operators'
 
@@ -8,48 +8,58 @@ import { PbItem } from './pbItem';
 enum SearchMode {
   transcript = 'transcript',
   genre = 'genre',
-  timeline = 'timeline'
+  timeline = 'timeline',
+  map = 'map'
 }
 
 @Component({
   template: `
   <div id="main-container">
-    <div id="right-container" style="text-align:center">
+    <div id="right-container">
       <h1>
         Explore the American Archive Reading Room ... 
       </h1>
       <div style="display: flex; flex-direction: row">
-        <img style="margin: 0 auto;" src="assets/aapb-q-50.jpg">
+        <img style="margin: 0 auto; max-width: 100%;" src="assets/aapb-q-50.jpg">
       </div>
-    <div>
-      <input
-        #searchInput
-        type="text" placeholder="Search ...">
-      <label>
-        Limit: <input #outputLimitInput type="number" value="1000">
-      </label>
-      <button (click)="doSearch(searchModes.timeline)">Timeline</button>
-      <button (click)="doSearch(searchModes.genre)">Genre cluster</button>
-      <button (click)="doSearch(searchModes.transcript)">Transcript</button>
+
+      <div>
+        <input
+          #searchInput
+          type="text" placeholder="Search ...">
+        <label>
+          Limit: <input #outputLimitInput type="number" value="1000">
+        </label>
+        <button (click)="doSearch(searchModes.timeline)">Timeline</button>
+        <button (click)="doSearch(searchModes.genre)">Genre cluster</button>
+        <button (click)="doSearch(searchModes.transcript)">Transcript</button>
+        <button (click)="doSearch(searchModes.map)">Map</button>
+
+      </div>
+
+      <div *ngIf="searchMode === searchModes.timeline">
+        <table-view [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></table-view>
+      </div>
+
+      <div *ngIf="searchMode === searchModes.genre">
+        <bubbles [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></bubbles>
+      </div>
+
+      <div *ngIf="searchMode === searchModes.transcript">
+        <button *ngIf="transcriptIndex < allItems.length" (click)="gotoNextTranscript()">Next</button>
+        <transcript-word-cloud [transcriptUrl]="transcriptUrl"></transcript-word-cloud>
+      </div>
+
+      <div map-view *ngIf="searchMode === searchModes.map" 
+        style="flex: 1;"
+        [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></div>
 
     </div>
-
-    <div *ngIf="searchMode === searchModes.timeline">
-      <table-view [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></table-view>
+    
+    <div id="tooltip">
+      <item-detail [item]="currentItem"></item-detail>
     </div>
 
-    <div *ngIf="searchMode === searchModes.genre">
-      <bubbles [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></bubbles>
-    </div>
-
-    <div *ngIf="searchMode === searchModes.transcript">
-      <button *ngIf="transcriptIndex < allItems.length" (click)="gotoNextTranscript()">Next</button>
-      <transcript-word-cloud [transcriptUrl]="transcriptUrl"></transcript-word-cloud>
-    </div>
-
-  </div>
-  <div id="tooltip">
-    <item-detail [item]="currentItem"></item-detail>
   </div>
   
   `,
@@ -64,6 +74,9 @@ enum SearchMode {
       flex: 1;
       overflow: scroll;
       height: 100%;
+      text-align: center;
+      display: flex;
+      flex-flow: column;
     }
 
     #tooltip {

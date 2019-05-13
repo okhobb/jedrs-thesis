@@ -13,7 +13,10 @@ import {TranscriptComponent} from './transcript.component';
 import {SearchComponent} from './search.component';
 import {BubblesComponent} from './bubbles.component';
 import {TableViewComponent} from './tableView.component';
+import {MapViewComponent} from './mapView.component';
+import {LoadingComponent} from './loading.component';
 import {DataQuery} from './dataQuery';
+import {LocationData} from './locationData';
 
 
 const appRoutes: Routes = [
@@ -34,7 +37,9 @@ const routeConfig = {
     SearchComponent,
     TranscriptComponent,
     BubblesComponent,
-    TableViewComponent
+    TableViewComponent,
+    MapViewComponent,
+    LoadingComponent
   ],
   imports: [
     BrowserModule,
@@ -42,7 +47,8 @@ const routeConfig = {
     RouterModule.forRoot(appRoutes, routeConfig)
   ],
   providers: [
-    DataQuery
+    DataQuery,
+    LocationData
   ],
   bootstrap: [AppComponent]
 })

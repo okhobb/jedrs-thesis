@@ -18,6 +18,10 @@ interface RawPbInstantiation {
   instantiationMediaType: string
 }
 
+interface RawPbCreator {
+  creator: string
+}
+
 // is the pbcore instantiation a single thing or an array
 interface RawPbItem {
   id: string,
@@ -27,7 +31,8 @@ interface RawPbItem {
       pbcoreDescription: string[],
       pbcoreInstantiation: RawPbInstantiation|RawPbInstantiation[],
       pbcoreAnnotation: string[],
-      pbcoreGenre: string[]|undefined
+      pbcoreGenre: string[]|undefined,
+      pbcoreCreator: RawPbCreator|RawPbCreator[]|undefined
     }
   }
 }
@@ -191,8 +196,19 @@ export class DataQuery {
       description: description,
       mediaType: firstInstantiationWithDate.instantiationMediaType,
       hasNoDate: hasNoDate,
-      genres: genres       
+      genres: genres,
+      creators: this.getCreators(raw.xml2json.pbcoreDescriptionDocument.pbcoreCreator)      
     }
+  }
+
+  private getCreators(creators: RawPbCreator|RawPbCreator[]|undefined): string[] {
+    if (! creators) {
+      return [];
+    }
+    if (! Array.isArray(creators)) {
+      return [(<RawPbCreator>creators).creator];
+    }
+    return (<RawPbCreator[]>creators).map(c => c.creator);
   }
 
 // tests the annotation array for transcripts

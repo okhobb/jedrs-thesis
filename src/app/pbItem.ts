@@ -11,5 +11,6 @@ export interface PbItem {
   mediaType: string;
   hasNoDate: boolean;
   genres: string[]|undefined;
-
+  creators: string[];
+  
 }
