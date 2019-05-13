@@ -14,6 +14,16 @@ import { PbItem } from './pbItem';
       <ng-container *ngIf="item">
         <div class="title">Title: {{item.title}}</div>
         <div class="date bottom-margin">Date: {{item.date | date}}</div>
+
+        <div class="creators-header">Creators:</div>
+        <div *ngIf="item.creators && item.creators.length" class="creators-list">
+          <ul>
+            <li *ngFor="let creator of item.creators">
+              {{creator}}
+            </li>
+          </ul>
+        </div>
+
         <div class="genres-header">Genres:</div>
         <div *ngIf="item.genres && item.genres.length" class="genres-list">
           <ul>
@@ -53,6 +63,10 @@ import { PbItem } from './pbItem';
       font-size: 12px;
     }
 
+    .creators-header {
+      font-size: 12px;
+    }
+
     .info-panel-header {
       margin-top: 20px;
       margin-bottom: 15px;
@@ -83,6 +97,11 @@ import { PbItem } from './pbItem';
     }
 
     .genres-list {
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .creators-list {
       text-align: left;
       font-size: 13px;
     }
