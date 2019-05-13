@@ -8,14 +8,23 @@ import {PbItem} from './pbItem';
 
 @Component({
   template: `
-    <div *ngIf="currentItem">
-      <item-detail [item]="currentItem"></item-detail>
-    </div>
-    <div *ngIf="transcriptUrl">
-      <transcript-word-cloud [transcriptUrl]="transcriptUrl"></transcript-word-cloud>
+    <div class="transcript-container">
+      <div *ngIf="currentItem">
+        <item-detail [item]="currentItem"></item-detail>
+      </div>
+      <div *ngIf="transcriptUrl">
+        <transcript-word-cloud [transcriptUrl]="transcriptUrl"></transcript-word-cloud>
+      </div>
     </div>
 
-  `
+  `,
+  styles: [`
+    .transcript-container {
+      height: 100%;
+      width: 100%;
+      overflow: scroll;
+    }
+  `]
 })
 export class TranscriptComponent implements OnInit, OnDestroy {
 
