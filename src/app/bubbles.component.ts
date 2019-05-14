@@ -30,6 +30,7 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
   @ViewChild('svgElt') svgElt: ElementRef<SVGElement>;
   @Input('pbItemsObs') pbItemsObs: Observable<PbItem[]>;
   @Output() clickedItem: EventEmitter<PbItem> = new EventEmitter<PbItem>();
+  @Output() hoverItem: EventEmitter<PbItem> = new EventEmitter<PbItem>();
 
   isLoading: boolean = true;
 
@@ -111,7 +112,7 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
   private draw(): void {
 
     this.lazyInitSvg();
-    
+
     const genresMap = this.pbItems.reduce((memo, curr) => {
       memo[curr.genres[0]] = true;
       return memo;
@@ -151,7 +152,7 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
     this.bubbles = this.d3Root.selectAll("circle")
       .data(this.nodes, (d: BubbleData) => {
         return d.pbItem.id;
-//        return ''+Math.random();
+        //        return ''+Math.random();
       });
 
     this.enteringBubbles = this.bubbles
@@ -166,6 +167,7 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
       })
       .style("stroke", (d: any) => <any>color(d.cluster))
       .style("stroke-width", () => 1)
+      .on('click', d => this.handleClick(d))
       .on('mouseover', d => this.handleMouseover(d));
 
     //this.updatingBubbles = this.bubbles.();
@@ -182,15 +184,47 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
   }
 
   private tick() {
-    if (! this.bubbles) {
+    if (!this.bubbles) {
       return;
     }
     this.enteringBubbles
-      .attr("cx", (d: any) => d.x)
-      .attr("cy", (d: any) => d.y);
+      .attr("cx", (d: any) => {
+        if (d.x < (-this.width / 2) + this.bubbleRadius) {
+          d.x = (-this.width / 2) + this.bubbleRadius;
+        }
+        if (d.x > (this.width / 2) - this.bubbleRadius) {
+          d.x = (this.width / 2) - this.bubbleRadius;
+        }
+        return d.x;
+      })
+      .attr("cy", (d: any) => {
+        if (d.y < (-this.height / 2) + this.bubbleRadius) {
+          d.y = (-this.height / 2) + this.bubbleRadius;
+        }
+        if (d.y > (this.height / 2) - this.bubbleRadius) {
+          d.y = (this.height / 2) - this.bubbleRadius;
+        }
+        return d.y;
+      });
     this.bubbles
-      .attr("cx", (d: any) => d.x)
-      .attr("cy", (d: any) => d.y);
+      .attr("cx", (d: any) => {
+        if (d.x < (-this.width / 2) + this.bubbleRadius) {
+          d.x = (-this.width / 2) + this.bubbleRadius;
+        }
+        if (d.x > (this.width / 2) - this.bubbleRadius) {
+          d.x = (this.width / 2) - this.bubbleRadius;
+        }
+        return d.x;
+      })
+      .attr("cy", (d: any) => {
+        if (d.y < (-this.height / 2) + this.bubbleRadius) {
+          d.y = (-this.height / 2) + this.bubbleRadius;
+        }
+        if (d.y > (this.height / 2) - this.bubbleRadius) {
+          d.y = (this.height / 2) - this.bubbleRadius;
+        }
+        return d.y;
+      });
   }
 
   private forceCluster(alpha) {
@@ -204,8 +238,13 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
     }
   }
 
-  private handleMouseover(d3DataPt: any): void {
+  private handleClick(d3DataPt: any): void {
+    d3.event.stopPropagation();
     this.clickedItem.next(d3DataPt.pbItem);
+  }
+
+  private handleMouseover(d3DataPt: any): void {
+    this.hoverItem.next(d3DataPt.pbItem);
   }
 
 }

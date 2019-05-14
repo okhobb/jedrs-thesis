@@ -28,6 +28,7 @@ interface RawPbItem {
   title: string,
   xml2json: {
     pbcoreDescriptionDocument: {
+      pbcoreAssetDate: string,
       pbcoreDescription: string[],
       pbcoreInstantiation: RawPbInstantiation|RawPbInstantiation[],
       pbcoreAnnotation: string[],
@@ -135,6 +136,9 @@ export class DataQuery {
         return true;
       }
     }
+    if (raw.xml2json.pbcoreDescriptionDocument.pbcoreAssetDate) {
+      return true;
+    }
     return false;
   }
 
@@ -156,7 +160,14 @@ export class DataQuery {
         break;
       }
     }
-    let dateStr: any = firstInstantiationWithDate.instantiationDate;
+    let dateStr: string;
+    if (firstInstantiationWithDate) {
+      dateStr = firstInstantiationWithDate.instantiationDate;
+    } else if (Array.isArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreAssetDate)) {
+      dateStr = raw.xml2json.pbcoreDescriptionDocument.pbcoreAssetDate[0];
+    } else {
+      dateStr = raw.xml2json.pbcoreDescriptionDocument.pbcoreAssetDate;
+    }
     // console.log('fucking date string is', dateStr);
     // if (typeof(dateStr) !== 'string') {
     //   dateStr = dateStr[0];
@@ -175,14 +186,33 @@ export class DataQuery {
 
     let hasNoDate: boolean = false;
     if (date.getTime() < this.minimumDate.toDate().getTime()) {
+
+      if (raw.xml2json.pbcoreDescriptionDocument.pbcoreAssetDate) {
+        let dateStr;
+        if (Array.isArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreAssetDate)) {
+          dateStr = raw.xml2json.pbcoreDescriptionDocument.pbcoreAssetDate[0];
+        } else {
+          dateStr = raw.xml2json.pbcoreDescriptionDocument.pbcoreAssetDate;
+        } 
+        date = moment(dateStr, 'YYYY-MM-DD').toDate();
+      } else {
+        date = new Date();
+        hasNoDate = true;
+        console.log('below minimum date and no asset date', raw)
+      }
+
+    }
+
+
+    if (Number.isNaN(date.getUTCFullYear())) {
+      console.log('bad date', dateStr, raw)
       date = new Date();
       hasNoDate = true;
     }
 
-    if (Number.isNaN(date.getUTCFullYear())) {
-      console.log('bad date', dateStr, raw)
-    }
-
+    const mediaType = firstInstantiationWithDate
+      ? firstInstantiationWithDate.instantiationMediaType
+      : '';
     const description = this.asArray(raw.xml2json.pbcoreDescriptionDocument.pbcoreDescription);
     const genres = raw.xml2json.pbcoreDescriptionDocument.pbcoreGenre === undefined
       ? undefined
@@ -194,10 +224,11 @@ export class DataQuery {
       transcriptUrl: this.getRawPbItemTranscript(raw),
       hasOnlineReadingRoom: this.getRawPbItemHasOnlineReadingRoom(raw),
       description: description,
-      mediaType: firstInstantiationWithDate.instantiationMediaType,
+      mediaType: mediaType,
       hasNoDate: hasNoDate,
       genres: genres,
-      creators: this.getCreators(raw.xml2json.pbcoreDescriptionDocument.pbcoreCreator)      
+      creators: this.getCreators(raw.xml2json.pbcoreDescriptionDocument.pbcoreCreator),
+      raw: raw.xml2json  
     }
   }
 

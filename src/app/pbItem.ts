@@ -12,5 +12,5 @@ export interface PbItem {
   hasNoDate: boolean;
   genres: string[]|undefined;
   creators: string[];
-  
+  raw?: any;
 }

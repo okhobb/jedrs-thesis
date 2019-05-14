@@ -1,4 +1,4 @@
-import {Component, ViewChild, ElementRef, OnDestroy} from '@angular/core';
+import {Component, ViewChild, ElementRef, HostListener} from '@angular/core';
 import {Observable, pipe, Subscription} from 'rxjs';
 import {take} from 'rxjs/operators'
 
@@ -40,11 +40,15 @@ enum SearchMode {
       </div>
 
       <div *ngIf="searchMode === searchModes.timeline">
-        <table-view [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></table-view>
+        <table-view [pbItemsObs]="pbItemsObs" 
+          (hoverItem)="handleItemHover($event)"
+          (clickedItem)="handleItemClick($event)"></table-view>
       </div>
 
       <div *ngIf="searchMode === searchModes.genre">
-        <bubbles [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></bubbles>
+        <bubbles [pbItemsObs]="pbItemsObs" 
+          (hoverItem)="handleItemHover($event)"
+          (clickedItem)="handleItemClick($event)"></bubbles>
       </div>
 
       <div *ngIf="searchMode === searchModes.transcript">
@@ -58,7 +62,7 @@ enum SearchMode {
     </div>
     
     <div id="tooltip">
-      <item-detail [item]="currentItem"></item-detail>
+      <item-detail [item]="currentLockedItem ? currentLockedItem : currentHoverItem"></item-detail>
     </div>
 
   </div>
@@ -83,7 +87,7 @@ enum SearchMode {
     #tooltip {
       width: 300px;
       background-color: #FFFDD0;
-      border: 1px solid gray;
+      border: 1px none gray;
       border-radius: 4px;
       padding: 5px 5px 5px 5px;
       height: 100%;
@@ -105,12 +109,20 @@ export class SearchComponent {
   searchTerm: string = '';
   
   pbItemsObs: Observable<PbItem[]>; // where to put the results per this.pbItemsObs below
-  currentItem: PbItem|undefined; // item detail component
+  currentHoverItem: PbItem|undefined; // item detail component
+  currentLockedItem: PbItem|undefined;
 
   private pbSub: Subscription;
 
   constructor(
     private readonly dataQuery: DataQuery) {} // this is where the DataQuery class is injected (it's a 'singleton' instance of the class)
+
+
+  @HostListener('document:click', ['$event'])
+  handleBackgroundClick(e: MouseEvent): void {
+    this.currentLockedItem = undefined;
+    this.currentHoverItem = undefined;
+  } 
 
   doSearch(mode: SearchMode): void {
 
@@ -129,8 +141,14 @@ export class SearchComponent {
 
   }
 
+  handleItemHover(item: PbItem): void {
+    this.currentHoverItem = item;
+    console.log('hover item is ', this.currentLockedItem, item)
+  }
+
   handleItemClick(item: PbItem): void {
-    this.currentItem = item;
+    this.currentLockedItem = item;
+    console.log('locekd item is ', this.currentLockedItem, item)
   }
 
 }

@@ -13,7 +13,8 @@ import { PbItem } from './pbItem';
 
       <ng-container *ngIf="item">
         <div class="title">Title: {{item.title}}</div>
-        <div class="date bottom-margin">Date: {{item.date | date}}</div>
+        <div *ngIf="!item.hasNoDate" class="date bottom-margin">Date: {{item.date | date}}</div>
+        <div *ngIf="item.hasNoDate" class="date bottom-margin">Date: Unknown</div>
 
         <ng-container *ngIf="item.creators && item.creators.length">
           <div class="creators-header">Creators:</div>
@@ -74,6 +75,7 @@ import { PbItem } from './pbItem';
       margin-bottom: 15px;
       font-style: italic;
       font-size: 10px;
+      text-align: right;
     }
 
     .title {
