@@ -16,12 +16,14 @@ import {TableViewComponent} from './tableView.component';
 import {MapViewComponent} from './mapView.component';
 import {LoadingComponent} from './loading.component';
 import {TranscriptListComponent} from './transcriptList.component';
+import {LandingComponent} from './landing.component';
 import {DataQuery} from './dataQuery';
 import {LocationData} from './locationData';
 
 
 const appRoutes: Routes = [
-  { path: '', component: SearchComponent },
+  { path: '', component: LandingComponent },
+  { path: 'search', component: SearchComponent },
   { path: 'transcript', component: TranscriptComponent }
 ];
 
@@ -41,7 +43,8 @@ const routeConfig = {
     TableViewComponent,
     MapViewComponent,
     LoadingComponent,
-    TranscriptListComponent
+    TranscriptListComponent,
+    LandingComponent
   ],
   imports: [
     BrowserModule,
