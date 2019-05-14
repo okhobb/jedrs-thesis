@@ -16,11 +16,13 @@ enum SearchMode {
   template: `
   <div id="main-container">
     <div id="right-container">
-      <h1>
-        Explore the American Archive Reading Room ... 
-      </h1>
-      <div style="display: flex; flex-direction: row">
-        <img style="margin: 0 auto; max-width: 100%;" src="assets/aapb-q-50.jpg">
+    <img style="margin: 0 auto; max-width: 100%;" src="assets/aapblogo.jpg">
+
+      <div style="display: block; row; width: 100%;">
+      <p>  
+      <h3>
+        Explore the Online Reading Room ... 
+      </h3>
       </div>
 
       <div>
