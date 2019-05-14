@@ -39,7 +39,8 @@ interface YearPbItem {
                                 [style.border-radius.px]="halfCircleRadius"
                                 [style.background-color]="getCircleBackground(item)"
                                 [style.border-color]="getCircleColor(item)"
-                                (mousemove)="clickedItem.next(item)"
+                                (mousemove)="handleHoverItem($event, item)"
+                                (click)="handleClickItem($event, item)"
                             >&nbsp;</span>
                         </td>
                     </tr>
@@ -68,6 +69,7 @@ export class TableViewComponent implements OnChanges, OnDestroy {
 
     @Input() pbItemsObs: Observable<PbItem[]>;
     @Output() clickedItem: EventEmitter<PbItem> = new EventEmitter<PbItem>();
+    @Output() hoverItem: EventEmitter<PbItem> = new EventEmitter<PbItem>();
 
     readonly circleRadius = 8;
     readonly halfCircleRadius = this.circleRadius / 2;
@@ -99,6 +101,16 @@ export class TableViewComponent implements OnChanges, OnDestroy {
         if (this.pbItemsSub) {
             this.pbItemsSub.unsubscribe();
         }
+    }
+
+    handleHoverItem(e: MouseEvent, item: PbItem): void {
+        e.stopPropagation();
+        this.hoverItem.next(item);
+    }
+
+    handleClickItem(e: MouseEvent, item: PbItem): void {
+        e.stopPropagation();
+        this.clickedItem.next(item);
     }
 
     getCircleBackground(pbItem: PbItem): string {
