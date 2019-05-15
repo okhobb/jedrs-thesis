@@ -45,7 +45,9 @@ enum SearchMode {
           (clickedItem)="handleItemClick($event)"></table-view>
       </div>
 
-      <div *ngIf="searchMode === searchModes.genre">
+      <div *ngIf="searchMode === searchModes.genre"
+        (click)="$event.stopPropagation()"
+      >
         <bubbles [pbItemsObs]="pbItemsObs" 
           (hoverItem)="handleItemHover($event)"
           (clickedItem)="handleItemClick($event)"></bubbles>
