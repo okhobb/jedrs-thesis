@@ -57,6 +57,7 @@ enum SearchMode {
 
       <div map-view *ngIf="searchMode === searchModes.map" 
         style="flex: 1;"
+        (click)="$event.stopPropagation()"
         [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></div>
 
     </div>
@@ -122,6 +123,7 @@ export class SearchComponent {
   handleBackgroundClick(e: MouseEvent): void {
     this.currentLockedItem = undefined;
     this.currentHoverItem = undefined;
+    console.log('unlocked');
   } 
 
   doSearch(mode: SearchMode): void {
