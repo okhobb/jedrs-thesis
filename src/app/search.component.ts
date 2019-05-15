@@ -51,7 +51,9 @@ enum SearchMode {
           (clickedItem)="handleItemClick($event)"></bubbles>
       </div>
 
-      <div *ngIf="searchMode === searchModes.transcript">
+      <div *ngIf="searchMode === searchModes.transcript"
+        (click)="$event.stopPropagation()"  
+      >
         <transcript-list [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></transcript-list>
       </div>
 
