@@ -45,13 +45,17 @@ enum SearchMode {
           (clickedItem)="handleItemClick($event)"></table-view>
       </div>
 
-      <div *ngIf="searchMode === searchModes.genre">
+      <div *ngIf="searchMode === searchModes.genre"
+        (click)="$event.stopPropagation()"
+      >
         <bubbles [pbItemsObs]="pbItemsObs" 
           (hoverItem)="handleItemHover($event)"
           (clickedItem)="handleItemClick($event)"></bubbles>
       </div>
 
-      <div *ngIf="searchMode === searchModes.transcript">
+      <div *ngIf="searchMode === searchModes.transcript"
+        (click)="$event.stopPropagation()"  
+      >
         <transcript-list [pbItemsObs]="pbItemsObs" (clickedItem)="handleItemClick($event)"></transcript-list>
       </div>
 
