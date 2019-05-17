@@ -29,7 +29,7 @@ interface PbItemGeoJsonFeature {
       <button (click)="handlePrevClick()" [disabled]="currentPbItemIdx <= 0">Prev</button>
       <button (click)="handleNextClick()" [disabled]="currentPbItemIdx >= selectedPbItems.length - 1">Next</button>
     </div>
-    <div #mapDiv style="flex: 1; min-height: 1000px;"></div>
+    <div #mapDiv style="flex: 1; min-height: 1000px; margin-right: 20px;"></div>
   `,
   styles: [`
     :host {
