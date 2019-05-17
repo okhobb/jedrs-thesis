@@ -45,7 +45,7 @@ import { PbItem } from './pbItem';
           <a [href]="getUrlFromId(item)" target="_blank">Go to catalog entry....</a>
         </div>
         <div *ngIf="item.transcriptUrl">
-          <a class="wordCloudLlink" target="_blank "[routerLink]="['transcript']" [queryParams]="{id: item.id, transcriptUrl: item.transcriptUrl}" queryParamsHandling="merge">
+          <a class="wordCloudLlink" target="_blank" [routerLink]="['/transcript']" [queryParams]="{id: item.id, transcriptUrl: item.transcriptUrl}" queryParamsHandling="merge">
             Transcript Word Cloud
           </a>
         </div>
