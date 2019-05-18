@@ -127,7 +127,7 @@ export class SearchComponent {
   handleBackgroundClick(e: MouseEvent): void {
     this.currentLockedItem = undefined;
     this.currentHoverItem = undefined;
-    console.log('unlocked');
+    //console.log('unlocked');
   } 
 
   doSearch(mode: SearchMode): void {
@@ -149,12 +149,12 @@ export class SearchComponent {
 
   handleItemHover(item: PbItem): void {
     this.currentHoverItem = item;
-    console.log('hover item is ', this.currentLockedItem, item)
+    //console.log('hover item is ', this.currentLockedItem, item)
   }
 
   handleItemClick(item: PbItem): void {
     this.currentLockedItem = item;
-    console.log('locekd item is ', this.currentLockedItem, item)
+    //console.log('locekd item is ', this.currentLockedItem, item)
   }
 
 }

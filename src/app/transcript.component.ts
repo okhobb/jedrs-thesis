@@ -39,7 +39,7 @@ export class TranscriptComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('ini transcript init');
+    //console.log('ini transcript init');
     this.subs = [
       this.route
       .queryParamMap
