@@ -198,14 +198,14 @@ export class DataQuery {
       } else {
         date = new Date();
         hasNoDate = true;
-        console.log('below minimum date and no asset date', raw)
+        //console.log('below minimum date and no asset date', raw)
       }
 
     }
 
 
     if (Number.isNaN(date.getUTCFullYear())) {
-      console.log('bad date', dateStr, raw)
+      //console.log('bad date', dateStr, raw)
       date = new Date();
       hasNoDate = true;
     }

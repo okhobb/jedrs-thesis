@@ -121,7 +121,7 @@ export class BubblesComponent implements AfterViewInit, OnChanges {
 
     const m = genres.length; // number of distinct clusters
 
-    console.log('genres are', genres);
+    //console.log('genres are', genres);
 
     const colors = genres.map((genre, idx) => {
       const h = Math.floor(360.0 * (idx / m));

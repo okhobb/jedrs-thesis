@@ -141,7 +141,7 @@ export class TableViewComponent implements OnChanges, OnDestroy {
             const year = item.hasNoDate ? this.unknownDateYear : item.date.getUTCFullYear();
 
             if (Number.isNaN(year)) {
-                console.log('year is nan', item);
+                //console.log('year is nan', item);
                 return;
             }
 
